@@ -1,0 +1,1035 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>創業學：Wharton 互動學習</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link href="https://fonts.googleapis.com/css2?family=Merriweather:ital,wght@0,400;0,700;1,400&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet"/>
+<script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+<script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+<script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+<script>
+tailwind.config = {
+  darkMode: 'class',
+  theme: { extend: { fontFamily: { sans: ['Inter','sans-serif'], serif: ['Merriweather','serif'] } } }
+}
+</script>
+<style>
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(15px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.animate-fade-in { animation: fadeInUp 0.5s ease-out forwards; }
+.perspective { perspective: 1000px; }
+.transform-style-3d { transform-style: preserve-3d; }
+.backface-hidden { backface-visibility: hidden; -webkit-backface-visibility: hidden; }
+.rotate-y-180 { transform: rotateY(180deg); }
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+.dark ::-webkit-scrollbar-thumb { background: #475569; }
+</style>
+</head>
+<body>
+<div id="root"></div>
+<script type="text/babel">
+const { useState, useEffect, useRef } = React;
+
+const dict = {
+  zh: {
+    title: "創業學：機會、策略與影響力",
+    subtitle: "Wharton Online · 互動學習系列",
+    nav_modules: "單元目錄",
+    nav_prev: "上一單元",
+    nav_next: "下一單元",
+    key_terms: "關鍵專有名詞",
+    flip_prompt: "點擊翻轉",
+    audio_read: "語音導覽",
+    quiz_title: "模組知識檢定（隨機 4 題）",
+    submit: "提交答案",
+    retry: "重新測驗",
+    score: "得分", correct: "正確", incorrect: "錯誤", explanation: "解析",
+    analytics_title: "學習歷程分析",
+    analytics_desc: "追蹤您的學習進度、互動頻率與測驗表現",
+    analytics_form_title: "填寫學習者資訊",
+    analytics_group: "組別", analytics_dept: "系級",
+    analytics_id: "學號", analytics_name: "姓名",
+    analytics_dept_ph: "例：企管三", analytics_id_ph: "例：B11234567", analytics_name_ph: "請輸入姓名",
+    analytics_export_csv: "匯出 CSV 歷程記錄",
+    analytics_fill_required: "請填寫完整資訊以解鎖匯出",
+    group_options: ["G1","G2","G3","G4","G5","Others"],
+    analytics_total_time: "總學習時間", analytics_total_clicks: "總互動點擊",
+    analytics_overall_acc: "總體測驗答對率",
+    analytics_module: "模組", analytics_time: "停留時間",
+    analytics_clicks: "點擊次數", analytics_acc: "答對率",
+    analytics_correct_ans_total: "答對 / 已答 / 總題數",
+    analytics_no_data: "尚未測驗", analytics_sec: "秒", analytics_times: "次",
+    // M1 課程介紹
+    m1_nav: "創業導論",
+    m1_title: "什麼是創業？",
+    m1_p1: "創業（Entrepreneurship）是指為實現某項目標而創立和管理新企業的過程。Karl T. Ulrich 教授指出，創業的規模可大可小——從伊斯坦堡路邊賣魚麵包的小販，到打造飛行汽車的科技公司，都屬於創業的範疇。",
+    m1_p2: "「創業的核心不是賺錢，而是實現目標——財務可持續性只是讓夢想得以延續的必要條件。」",
+    m1_p3: "創業成功的關鍵在於財務可持續性。對於銷售實體產品的企業，需滿足：Q(p－c) > F，即銷售收益扣除變動成本後的毛利，必須超過固定成本。",
+    m1_cards: [
+      { title: "產品型企業財務公式", desc: "Q × (p－c) > F\n銷量 × 毛利 > 固定成本\n例：20,000件 × ($50－$20) = $600,000 > $400,000 ✓" },
+      { title: "服務型企業財務公式", desc: "LTV > CAC\n客戶終身價值 > 客戶獲取成本\n例：LTV $5,000 > CAC $3,000 ✓" }
+    ],
+    m1_terms: [
+      { front: "創業 Entrepreneurship", back: "為實現某項目標而創立並管理新企業的過程，不限規模大小。" },
+      { front: "財務可持續性 Financial Sustainability", back: "企業長期正向現金流的能力：Q(p-c) > F（產品型）或 LTV > CAC（服務型）。" },
+      { front: "毛利 Gross Margin", back: "每單位產品的售價減去直接成本（p－c），反映核心業務的獲利能力。" }
+    ],
+    m1_q: [
+      { q: "創業的定義是什麼？", opts: ["只限於科技新創公司","為實現某項目標而創立並管理新企業","僅指獲得風險投資的公司","必須追求上市（IPO）"], ans: 1, exp: "創業定義廣泛，涵蓋所有規模的新企業，核心是有目的地創立並管理。" },
+      { q: "產品型企業財務可持續的條件是？", opts: ["Q × p > F","Q × (p－c) > F","LTV > CAC","p > c + F"], ans: 1, exp: "Q(p-c) > F：銷量乘以毛利必須超過固定成本，企業才能長期運作。" },
+      { q: "LTV > CAC 公式適用於哪類企業？", opts: ["製造業","實體零售","服務與訂閱制企業","農業"], ans: 2, exp: "LTV（客戶終身價值）> CAC（客戶獲取成本）適用於持續服務或訂閱制的商業模式。" },
+      { q: "Belle-V 開瓶器案例中，毛利（Gross Margin）是多少？", opts: ["$50","$20","$30","$400,000"], ans: 2, exp: "p ($50) - c ($20) = $30 為每單位毛利（Gross Margin）。" },
+      { q: "創業者的主要目標通常是什麼？", opts: ["僅是賺錢","實現某項特定目標，財務可持續是必要條件","獲取政府補助","達到規模最大化"], ans: 1, exp: "大多數創業者有超越金錢的目標，但仍需財務可持續才能長久追求理想。" },
+      { q: "新創企業 10 年存活率約為多少（美國 SBA 數據）？", opts: ["78.5%","53.3%","33.5%","15%"], ans: 2, exp: "根據美國小企業管理局數據，10 年後約 33.5% 的企業存活。" },
+      { q: "創業財務公式中，F 代表什麼？", opts: ["每單位成本","固定成本（租金、薪資等）","融資金額","利潤"], ans: 1, exp: "F 為固定成本（Fixed costs），包含租金、廣告費、薪資等，不隨銷量變化。" },
+      { q: "下列哪項不是創業者 Ulrich 教授舉例的案例？", opts: ["Bedtime Math","Raaka Chocolate","Terrafugia","Tesla"], ans: 3, exp: "課程舉例包含 Bedtime Math、Raaka Chocolate、Terrafugia，Tesla 並未在課程中提及。" }
+    ],
+    // M2 創業者輪廓
+    m2_nav: "創業者輪廓",
+    m2_title: "誰是創業者？打破刻板印象",
+    m2_p1: "Ethan Mollick 教授指出，社會對創業者存在三大常見誤解：認為只有年輕人（如扎克伯格）才能成功、創業是男性主導的領域、或必須具備特定人格特質。研究顯示這些都是迷思。",
+    m2_p2: "「沒有所謂的『典型創業者』——創業者比一般人想像的更加多元，年齡、性別、背景都不是決定因素。」",
+    m2_p3: "研究顯示：較高齡的創業者平均擁有更高的成功機率。在美國，約 38% 的企業由女性創立，36% 由少數族裔創立。過度自信會增加創業行為，但不必然提升成功率。",
+    m2_cards: [
+      { title: "誤解一：年齡", desc: "研究顯示，創業者年齡越高，成功退出（IPO 或被收購）的機率反而越大。40-60 歲的創業者表現往往優於 20 歲出頭的新手。" },
+      { title: "誤解二：性別與種族", desc: "美國 38% 企業由女性創立，36% 由少數族裔創立。眾籌平台的研究顯示，一旦獲得資金，性別與種族對結果無顯著影響。" },
+      { title: "誤解三：人格特質", desc: "過度自信可增加創業意願但不保證成功。熱情似乎是正向因素，但目前研究尚不確定。沒有單一的「創業者人格」。" }
+    ],
+    m2_terms: [
+      { front: "創業者輪廓 Entrepreneur Profile", back: "研究顯示創業者多元多樣，年齡、性別、背景皆非決定成功的關鍵因素。" },
+      { front: "存活偏差 Survivorship Bias", back: "只看到成功的年輕創業者，忽略同樣存在的年長成功案例，造成「年輕才能創業」的錯誤印象。" },
+      { front: "過度自信 Overconfidence", back: "對成功機率的高估，可增加創業行動，但研究顯示並不直接提升成功率。" }
+    ],
+    m2_q: [
+      { q: "研究顯示，創業者成功機率與年齡的關係是？", opts: ["年齡越小越可能成功","年齡越大，成功機率越高","年齡與成功無關","只有 25-35 歲最適合創業"], ans: 1, exp: "多項研究顯示，年齡較大的創業者擁有更豐富的經驗與資源，成功機率往往更高。" },
+      { q: "美國約有多少比例的企業由女性創立？", opts: ["約 18%","約 28%","約 38%","約 48%"], ans: 2, exp: "根據全球創業觀察（GEM）2016 年數據，美國約 38% 的企業由女性創立。" },
+      { q: "過度自信對創業的影響是？", opts: ["降低創業意願但提升成功率","增加創業意願，但不必然提升成功率","對創業完全無影響","是成功創業的必要條件"], ans: 1, exp: "過度自信會驅使人採取創業行動，但研究顯示它並不直接帶來更高的成功率。" },
+      { q: "關於創業者人格特質，研究的主要結論是？", opts: ["外向型人格最適合創業","高風險承受度是必要特質","沒有單一清晰的創業者人格","熱情是創業成功的決定因素"], ans: 2, exp: "研究顯示不存在單一的「創業者人格」，創業者的多元性遠超一般認知。" },
+      { q: "下列哪項是關於創業者的常見迷思？", opts: ["創業者需要財務可持續","只有年輕人才能成功創業","創業需要明確目標","財務分析很重要"], ans: 1, exp: "「只有年輕人才能成功」是存活偏差造成的迷思，研究實際上顯示年長創業者更易成功。" },
+      { q: "眾籌平台的研究顯示，一旦獲得資金後，性別對創業結果的影響是？", opts: ["女性創業者表現明顯較差","男性創業者有顯著優勢","性別對結果無顯著影響","種族是主要影響因素"], ans: 2, exp: "眾籌研究顯示，一旦獲得資金，性別、種族、家庭狀況對創業結果均無顯著影響。" },
+      { q: "熱情（Passion）對創業的影響目前研究結論是？", opts: ["確定是成功的決定性因素","似乎是正向的，但研究尚不確定","已被證明無關緊要","降低成功機率"], ans: 1, exp: "熱情似乎對創業有正向作用，但學術研究目前仍未有確切定論。" },
+      { q: "以下哪項最能描述創業者的多元性？", opts: ["主要為 20-30 歲的白人男性","只有名校畢業生","涵蓋各年齡、性別、種族的多元群體","通常有特定理工背景"], ans: 2, exp: "研究一再顯示創業者群體遠比刻板印象更多元，涵蓋各種背景的人。" }
+    ],
+    // M3 已成立企業中的創業
+    m3_nav: "企業內部創業",
+    m3_title: "在已成立企業中創業：雙元創新",
+    m3_p1: "Lori Rosenkopf 教授指出，已成立的企業同樣可以具備創業精神。這種現象被稱為「企業內部創業」（Intrapreneurship）或「雙元創新」（Ambidextrous Innovation）——在利用現有優勢（Exploitation）的同時，不斷探索新機會（Exploration）。",
+    m3_p2: "「最成功的企業是那些能夠同時維持日常業務穩定運作，又能持續探索顛覆性創新機會的組織。」",
+    m3_p3: "Clay Christensen 的「破壞性創新」理論指出：新技術往往從低端市場或邊緣市場切入，逐漸超越現有主流技術。成熟企業可透過三種策略維持創新：內部研發、策略夥伴關係、以及收購。",
+    m3_timeline: [
+      { title: "內部研發（Internal Development）", desc: "保護探索性專案——設立獨立組織單元，或給予個人專屬創新時間（如 Google、3M、LinkedIn 的做法）。" },
+      { title: "策略夥伴關係（Partnerships）", desc: "與外部新創公司或互補企業合作（如 Tesla 與 Toyota、Tesla 與 Airbnb 的合作模式）。" },
+      { title: "收購（Acquisitions）", desc: "直接購買新創公司（如 Facebook 收購 Instagram、Oculus、WhatsApp），快速獲取新技術與用戶。" }
+    ],
+    m3_terms: [
+      { front: "雙元創新 Ambidextrous Innovation", back: "企業同時進行「利用」（Exploitation，優化現有業務）與「探索」（Exploration，尋找新機會）的能力。" },
+      { front: "破壞性創新 Disruptive Innovation", back: "Clay Christensen 提出：新進者以較低性能但更低成本的方案進入市場，逐漸改善至顛覆現有主流技術。" },
+      { front: "企業風險投資 Corporate Venturing", back: "大型企業透過設立內部創投基金（如 Google Ventures、Intel Capital），投資外部新創，以獲取創新視野與技術。" }
+    ],
+    m3_q: [
+      { q: "「雙元創新」的核心概念是？", opts: ["企業只應專注於核心業務","同時進行現有業務優化（利用）和新機會探索（探索）","收購所有競爭對手","完全放棄舊業務，擁抱新模式"], ans: 1, exp: "雙元創新強調企業需同時做好「利用」和「探索」兩件事，缺一不可。" },
+      { q: "Clay Christensen 的破壞性創新理論指出，新技術通常從哪裡開始切入市場？", opts: ["高端市場","主流市場","低端或邊緣市場","政府採購市場"], ans: 2, exp: "破壞性創新通常從低端市場或邊緣市場切入，性能較差但更便宜，逐漸改善至顛覆主流。" },
+      { q: "已成立企業可透過哪三種策略實現創新？", opts: ["研發、行銷、人資","內部研發、策略夥伴、收購","融資、上市、擴張","研究、開發、銷售"], ans: 1, exp: "三大策略：內部研發（Internal Development）、策略夥伴（Partnerships）、收購（Acquisitions）。" },
+      { q: "3M 以「15% 時間」政策著名，這屬於哪類創新策略？", opts: ["收購新創公司","與外部公司策略聯盟","給個人探索時間的內部研發","政府合作計畫"], ans: 2, exp: "3M 的政策屬於「給予個人專屬創新時間」，是保護內部探索性活動的內部研發策略。" },
+      { q: "Facebook 收購 Instagram、WhatsApp 屬於哪種創新策略？", opts: ["內部研發","策略夥伴關係","收購","企業重組"], ans: 2, exp: "Facebook 透過收購策略快速獲取新技術、新用戶群和新市場，是收購型創新的典型案例。" },
+      { q: "企業風險投資（Corporate Venturing）的主要目的是？", opts: ["純粹財務回報","獲取創新視野、技術與人才","降低稅務負擔","規避法律風險"], ans: 1, exp: "企業設立風險投資基金，主要是為了接觸前沿創新、建立生態系統關係，財務回報是次要目的。" },
+      { q: "「利用」（Exploitation）在雙元創新中指的是？", opts: ["探索全新未知市場","優化和深化現有業務與資源","收購外部公司","颠覆自身業務"], ans: 1, exp: "Exploitation 指利用現有能力、資源和市場優勢，持續優化現有業務，是企業穩定現金流的基礎。" },
+      { q: "Rosenkopf 教授提到，保護企業內部「探索」最常見的做法是？", opts: ["增加行銷預算","裁撤低績效部門","設立獨立組織單元或給予個人創新時間","全面導入 AI 系統"], ans: 2, exp: "透過設立獨立單位（如 Google X）或保留創新時間（如 3M 的 15% 政策），保護探索活動不被日常業務壓力稀釋。" }
+    ],
+    // M4 創業的社會角色
+    m4_nav: "創業的社會角色",
+    m4_title: "新創企業對社會的貢獻",
+    m4_p1: "Lori Rosenkopf 教授強調，創業生態系統由三個關鍵角色構成：新創企業（帶來創新想法）、創投業者（提供資金）、以及成熟企業（提供資源和市場出口）。這三者形成相互依存的創新生態。",
+    m4_p2: "「小企業代表了美國 99% 以上的企業，創造了私人部門 67% 的就業機會——創業不只是個人財富，更是社會進步的引擎。」",
+    m4_p3: "在美國，每 1,000 名成年人中約有 3 人是自雇者（Kauffman Foundation 2014 數據）。規模少於 250 人的小企業佔美國企業總數的 99% 以上，創造了 67% 的私部門就業機會，以及 37% 的高科技就業。",
+    m4_cards: [
+      { title: "新創生態系統的三角關係", desc: "新創企業 ←→ 創投業者（資金）\n新創企業 ←→ 成熟企業（資金＋收購）\n這種生態讓創新得以持續流動，人才從大企業流向新創，創新成果再被大企業吸收。" },
+      { title: "獨角獸公司與創業價值", desc: "2015 年時，Uber 估值超過 450 億美元，其後超過 80 家新創估值逾 10 億美元。2004-2013 年間，有超過 800 個風投支持的企業以超過 1 億美元退出，其中 145 家超過 10 億美元。" }
+    ],
+    m4_terms: [
+      { front: "獨角獸公司 Unicorn Company", back: "估值超過 10 億美元的未上市新創企業，象徵創業成功的最高標誌。" },
+      { front: "創投生態系統 VC Ecosystem", back: "由新創企業、創投業者、天使投資人、成熟企業共同構成的創新資本市場，相互依存、相互強化。" },
+      { front: "就業創造 Job Creation", back: "新創和小型企業是私部門就業的主要來源，貢獻了美國 67% 的私人就業機會。" }
+    ],
+    m4_q: [
+      { q: "美國規模少於 250 人的小企業佔總企業數的多少比例？", opts: ["約 50%","約 75%","超過 99%","約 90%"], ans: 2, exp: "美國 28 百萬家企業中，超過 99% 規模少於 250 人，是就業和創新的主要力量。" },
+      { q: "小型企業創造了美國私部門多少比例的就業機會？", opts: ["約 30%","約 45%","約 67%","約 85%"], ans: 2, exp: "根據美國小企業協會數據，小企業創造了 67% 的私部門就業，其中 37% 為高科技就業。" },
+      { q: "創業生態系統的三個核心角色是？", opts: ["政府、企業、個人","新創企業、創投業者、成熟企業","銀行、律師、顧問","創辦人、員工、客戶"], ans: 1, exp: "三者形成互依生態：新創帶來創新，創投提供資金，成熟企業提供資源和收購出口。" },
+      { q: "Kauffman Foundation 數據顯示，美國每 1,000 名成年人中約有幾人是創業者？", opts: ["1 人","3 人","10 人","20 人"], ans: 1, exp: "2014 年數據顯示每 1,000 名成年人中約 3 人是自雇創業者。" },
+      { q: "2004-2013 年間，風投支持企業以超過 1 億美元退出的數量約為？", opts: ["約 100 個","超過 800 個","約 300 個","超過 2,000 個"], ans: 1, exp: "該期間超過 800 個風投支持企業以逾 1 億美元退出，其中 145 家超過 10 億美元。" },
+      { q: "「獨角獸公司」是指？", opts: ["技術最先進的企業","估值超過 10 億美元的未上市新創","上市超過 1 年的公司","由名校畢業生創辦的公司"], ans: 1, exp: "獨角獸公司指估值超過 10 億美元的未上市新創企業，是創業成功的重要指標。" },
+      { q: "創業對社會的主要貢獻不包括哪項？", opts: ["創造就業","推動技術創新","壟斷市場減少競爭","帶動經濟增長"], ans: 2, exp: "創業透過創造就業、推動創新、帶動競爭和增長貢獻社會。壟斷市場通常被視為反競爭行為。" },
+      { q: "成熟企業在創業生態系統中的主要角色是？", opts: ["阻止新創競爭","提供資金、資源和收購出口","替代新創企業","控制創投業者"], ans: 1, exp: "成熟企業透過企業創投、策略合作和收購，為新創提供資金和退出渠道，共同維持創業生態。" }
+    ],
+    // M5 企業類型
+    m5_nav: "企業類型",
+    m5_title: "創業的五種類型",
+    m5_p1: "Ethan Mollick 教授指出，並非所有創業都相同。依據目標、資源需求、成長野心和退出策略，可分為五大類型。理解自己屬於哪種類型，是制定正確策略的第一步。",
+    m5_p2: "「了解你是哪種創業者，才能知道需要什麼資源、面對什麼挑戰、以及追求什麼樣的成功。」",
+    m5_cards: [
+      { title: "🏠 生活方式型（Lifestyle）", desc: "以興趣或副業形式經營，目標是享受過程。資金需求少，不計劃擴張，也無退出計劃。（例：Etsy 手工藝販售者）" },
+      { title: "🏪 小型企業（Small Business）", desc: "全球最普遍的企業形式，目標是養家活口、當自己的老闆。透過貸款或親友資金，超過 2/3 不計劃成長。" },
+      { title: "🚀 高成長新創（High Growth Startup）", desc: "矽谷模式：目標是成為下一個 Google 或 Uber，或被收購。依靠創投與天使資金，以 IPO 或收購為退出策略。" },
+      { title: "🏢 企業內部創業（Intrapreneurship）", desc: "大企業內部的新創行動，利用公司資源，退出方式是被母公司採納整合。" },
+      { title: "🌍 社會創業（Social Venture）", desc: "主要目標是實現社會使命，依靠政府補助、基金會和社會影響力基金，通常不計劃退出。" }
+    ],
+    m5_terms: [
+      { front: "高成長新創 High Growth Startup", back: "以快速擴張、IPO 或高額收購為目標，依賴創投資金，是「矽谷模式」的代表。" },
+      { front: "社會創業 Social Venture", back: "以社會使命為首要目標，兼顧財務可持續，追求「三重底線」：利潤、社會影響、環境影響。" },
+      { front: "企業內部創業 Intrapreneurship", back: "在現有大企業框架內進行創業式創新，使用公司資源，但保持創業精神和靈活度。" }
+    ],
+    m5_q: [
+      { q: "以下哪種企業類型最注重快速成長和財務退出？", opts: ["生活方式型","小型企業","高成長新創","社會創業"], ans: 2, exp: "高成長新創以 IPO 或被高額收購為目標，需要創投資金，追求極速擴張。" },
+      { q: "小型企業的主要特徵是？", opts: ["追求 IPO","超過 2/3 不想成長，以養家為主","必須有創投支持","專注社會使命"], ans: 1, exp: "小型企業是全球最常見的企業形式，超過 2/3 的小型企業主並不希望大幅擴張。" },
+      { q: "社會創業（Social Venture）的主要資金來源是？", opts: ["創投基金","IPO 融資","政府補助、基金會、社會影響力基金","銀行貸款"], ans: 2, exp: "社會創業通常不適合傳統創投，需要耐心資本，主要來源包括基金會（如蓋茨基金會）和政府補助。" },
+      { q: "Etsy 上銷售手工藝品的賣家最可能屬於哪種創業類型？", opts: ["高成長新創","生活方式型","企業內部創業","社會創業"], ans: 1, exp: "Etsy 賣家通常以興趣為出發點，收入為輔，不計劃擴張，符合生活方式型創業。" },
+      { q: "企業內部創業的「退出」方式通常是？", opts: ["IPO","被外部公司收購","被母公司採納整合","關閉事業"], ans: 2, exp: "Intrapreneurship 的成功結果通常是項目被母公司正式採納，成為公司的新業務線。" },
+      { q: "「三重底線」（Triple Bottom Line）指的是？", opts: ["收益、成本、利潤","利潤、社會影響、環境影響","市場、產品、通路","人才、技術、資金"], ans: 1, exp: "社會創業追求三重底線：財務利潤（Profit）、社會影響（Social Impact）、環境影響（Environmental Impact）。" },
+      { q: "高成長新創主要依靠哪種資金？", opts: ["銀行貸款","政府補助","創投（VC）與天使投資","親友借款"], ans: 2, exp: "高成長新創需要大量快速資金支持擴張，主要依賴創投基金和天使投資人。" },
+      { q: "哪種企業類型對「不計劃退出」的描述最為準確？", opts: ["高成長新創","生活方式型企業和社會創業","企業內部創業","小型企業"], ans: 1, exp: "生活方式型和社會創業通常都沒有計劃退出，前者以享受為目的，後者以使命為導向。" }
+    ],
+    // M6 科技創業
+    m6_nav: "科技創業",
+    m6_title: "科技創業：機會視窗與競爭優勢",
+    m6_p1: "David H. Hsu 教授指出，技術變革為創業者創造了獨特機會視窗。Genentech 與重組 DNA 技術、Google 與 Facebook 與網際網路的興起，都是創業者在技術轉折點抓住機會的典型案例。然而，技術進步本身並不保證創業成功——商業模式、資源整合和進入策略同樣關鍵。",
+    m6_p2: "「技術是創業的催化劑，但不是充分條件——創業者需要在技術、商業模式和資源整合之間找到完美平衡。」",
+    m6_p3: "科技創業的利潤分配取決於兩個核心要素：可占用性（Appropriability，控制知識的能力）和互補性資產（Complementary Assets，商業化所需的其他資源）。在技術生命週期的不同階段，這兩個因素的相對重要性會有所不同。",
+    m6_cards: [
+      { title: "可占用性 Appropriability", desc: "若創新知識能被完全「占用」，則他人無法複製，知識的獨特性是強大的議價籌碼。來源：智慧財產保護、商業機密、市場速度（速度第一）。" },
+      { title: "互補性資產 Complementary Assets", desc: "商業化創新所需的額外資源：製造能力、配銷通路、品牌聲譽、客戶關係等。在成熟階段，這些資產往往比核心技術更重要。" }
+    ],
+    m6_timeline: [
+      { title: "萌芽期（Ferment）", desc: "技術方案百花齊放，獨特性（Uniqueness）高，但互補性資產稀少。創業者的核心優勢來自技術知識的獨特性。", highlight: false },
+      { title: "起飛期（Takeoff）", desc: "主流設計（Dominant Design）開始確立，獨特性降低，互補性資產重要性上升。", highlight: true },
+      { title: "成熟期（Maturity）", desc: "技術已標準化，獨特性低，互補性資產（品牌、通路、規模）成為主要競爭優勢。", highlight: false }
+    ],
+    m6_terms: [
+      { front: "主流設計 Dominant Design", back: "技術競爭結束後確立的標準規格，一旦出現，市場競爭轉向互補性資產和執行效率。" },
+      { front: "可占用性 Appropriability", back: "創業者控制和保護創新知識不被複製的能力，來源包括專利、商業機密和先行者優勢。" },
+      { front: "科技創業叢聚 Tech Cluster", back: "矽谷、波士頓等地因勞動力市場、資本市場和知識流動的集中效應，形成科技創業的地理聚落。" }
+    ],
+    m6_q: [
+      { q: "科技創業者在技術生命週期哪個階段擁有最高的「獨特性」優勢？", opts: ["成熟期","起飛期","萌芽期","衰退期"], ans: 2, exp: "萌芽期（Ferment）技術尚未標準化，創新者的技術知識最具獨特性，議價能力最強。" },
+      { q: "「可占用性」的主要來源不包括？", opts: ["智慧財產保護","商業機密","市場速度（先行者優勢）","廣告行銷"], ans: 3, exp: "可占用性來源包括 IP 保護、商業機密和速度優勢，廣告行銷屬於互補性資產，非可占用性。" },
+      { q: "1980-2013 年間，美國 IPO 中風投支持企業佔多少比例？", opts: ["約 15%","約 36%","約 58%（科技 IPO）","約 80%"], ans: 1, exp: "風投支持企業佔美國 IPO 總數的 36%，但在科技 IPO 中比例高達 58%。" },
+      { q: "矽谷科技創業叢聚形成的原因是？", opts: ["氣候宜人","勞動力市場、資本市場集中和知識流動效應","政府補貼","成本低廉"], ans: 1, exp: "矽谷的集聚效應源於勞動力市場靈活性、創投資本集中和同行之間的知識溢出效應。" },
+      { q: "「互補性資產」在哪個技術階段最為重要？", opts: ["萌芽期","起飛期","成熟期","研發期"], ans: 2, exp: "成熟期技術已標準化，核心技術的獨特性降低，配銷、品牌、客戶關係等互補性資產成為主要競爭優勢。" },
+      { q: "創業者同時擁有技術和商業知識的創始團隊有何優勢？", opts: ["降低研發成本","幫助更好地平衡技術創新與商業化","增加融資機會","避免政府監管"], ans: 1, exp: "兼具技術和商業知識的團隊能更有效地將技術轉化為商業價值，是科技創業成功的重要因素。" },
+      { q: "PayPal 的「Paypal Mafia」現象說明了什麼？", opts: ["PayPal 是最成功的科技公司","成功企業的員工是下一代創業者的重要來源","矽谷的薪資水平最高","只有名校畢業生才能成功創業"], ans: 1, exp: "Thiel、Musk、Hoffman 等 PayPal 校友創立了多家重要公司，體現了成功企業作為創業生態「搖籃」的角色。" },
+      { q: "技術 S 曲線中「起飛期」（Takeoff）的特徵是？", opts: ["技術剛被發明，尚未商業化","主流設計開始確立，市場快速擴張","技術成熟，增長趨緩","技術被更新一代技術取代"], ans: 1, exp: "起飛期是技術應用開始大規模擴散、市場快速增長的階段，主流設計正在形成或剛確立。" }
+    ],
+    // M7 影響力創業
+    m7_nav: "影響力創業",
+    m7_title: "影響力創業：改變世界的商業模式",
+    m7_p1: "Kartik Hosanagar 教授定義影響力創業為：創立以道德為基礎、對社會有實質影響的企業。這類企業不同於純粹的非營利組織，它們追求「三重底線」：財務利潤、社會影響和環境影響。常見領域包括醫療、衛生、教育和能源。",
+    m7_p2: "「影響力創業者相信：商業的力量可以成為解決社會問題最有效的工具——前提是讓社會使命成為業務模式的核心，而非附加選項。」",
+    m7_p3: "影響力企業面臨兩大核心挑戰：規模化（Scaling）和融資（Financing）。傳統創投通常不適合，需要「耐心資本」。成功的社會創業者往往採用三個原則：產品優先、使命要真實、執行要簡單（如 Warby Parker 的「買一捐一」模式）。",
+    m7_examples: [
+      { name: "Muhammad Yunus – GrameenBank", desc: "為孟加拉農村貧困人口提供小額貸款，服務超過 800 萬借款人，還款率超過 95%。" },
+      { name: "Iqbal Quadir – GrameenPhone", desc: "相信連網能增加收入和就業機會，在孟加拉建立擁有超過 5,000 萬用戶的最大電信運營商。" },
+      { name: "Warby Parker / TOMS Shoes", desc: "透過「買一捐一」模式，將社會使命融入商業模式，以品牌個性影響消費行為，同時完成社會目標。" }
+    ],
+    m7_terms: [
+      { front: "三重底線 Triple Bottom Line", back: "影響力創業的評估框架：財務利潤（Profit）+ 社會影響（People）+ 環境影響（Planet）。" },
+      { front: "耐心資本 Patient Capital", back: "願意接受較長回收期和較低財務回報的投資，以換取社會影響力最大化，如 Acumen Fund 等。" },
+      { front: "規模化 Scaling", back: "影響力企業擴大觸及範圍的策略，包括加盟夥伴、政策倡導，以及與有最後一哩服務能力的機構合作。" }
+    ],
+    m7_q: [
+      { q: "影響力創業（Impact Entrepreneurship）的核心特徵是？", opts: ["只專注社會公益，不追求利潤","追求三重底線：利潤、社會和環境影響","與政府合作的非營利組織","不需要融資的自給自足企業"], ans: 1, exp: "影響力創業既追求財務可持續，又以社會和環境影響為核心使命，是區別於傳統創業和純公益的第三條路。" },
+      { q: "GrameenBank 的創新在哪裡？", opts: ["提供高利貸","向農村貧困人口提供無抵押小額貸款","只服務企業客戶","專注城市中產階級"], ans: 1, exp: "GrameenBank 打破傳統銀行需要抵押品的規則，向農村貧困人口提供小額貸款，還款率超 95%。" },
+      { q: "影響力企業最常面臨的兩大挑戰是？", opts: ["人才招募和技術研發","規模化和融資","政府法規和稅務","行銷和品牌建立"], ans: 1, exp: "服務偏遠或弱勢群體的社會成本高，規模化困難；傳統創投不適合，需要特殊的融資管道。" },
+      { q: "Warby Parker 的 CEO 認為，社會使命對消費者決策的影響排在第幾位？", opts: ["第一位","第二位","第三位","第四位"], ans: 3, exp: "消費者主要考慮設計、成本、品質，社會使命通常排第四，但它創造了品牌個性，間接影響購買決策。" },
+      { q: "「耐心資本」（Patient Capital）的特徵是？", opts: ["追求快速高報酬","接受較長回收期換取社會影響最大化","只投資成熟市場","由政府提供的無償補助"], ans: 1, exp: "耐心資本（如 Acumen Fund）接受較低且較慢的財務回報，優先追求可持續的社會影響。" },
+      { q: "GrameenPhone 的創辦人 Iqbal Quadir 的核心信念是？", opts: ["電話是奢侈品","連網能提升貧困人口的收入和就業機會","只有城市才需要電信服務","技術無法解決貧困問題"], ans: 1, exp: "Quadir 相信連網可以提升生產力和就業，他在孟加拉打造最大電信商，成為影響力創業的典範。" },
+      { q: "成功整合社會使命與商業模式的三個原則是？", opts: ["低成本、高效率、快速擴張","產品優先、使命要真實、執行要簡單","公益優先、利潤其次、規模第三","技術領先、市場滲透、IPO退出"], ans: 1, exp: "Hosanagar 教授總結：以產品品質為先、社會使命需發自本心、執行方式要簡單易懂（如買一捐一）。" },
+      { q: "Teamlease 的 Manish Sabharwal 在印度面臨的主要成長障礙是？", opts: ["缺乏技術人才","勞動法規不明確","融資困難","市場規模太小"], ans: 1, exp: "Teamlease 幫助印度人找工作，但印度勞動法規的不清晰成為其規模化的主要障礙。" }
+    ],
+    // Footer
+    date: "Version 2025.03",
+    copyright: "© 2025 Wharton Online Entrepreneurship",
+    architect: "Course: Entrepreneurship Specialization"
+  },
+  en: {
+    title: "Entrepreneurship: Opportunity, Strategy & Impact",
+    subtitle: "Wharton Online · Interactive Learning Series",
+    nav_modules: "Modules",
+    nav_prev: "Previous",
+    nav_next: "Next",
+    key_terms: "Key Terms",
+    flip_prompt: "Click to flip",
+    audio_read: "Audio Guide",
+    quiz_title: "Module Quiz (Random 4 Questions)",
+    submit: "Submit",
+    retry: "Retry",
+    score: "Score", correct: "Correct", incorrect: "Incorrect", explanation: "Explanation",
+    analytics_title: "Learning Analytics",
+    analytics_desc: "Track your learning progress, interactions, and quiz performance",
+    analytics_form_title: "Student Information",
+    analytics_group: "Group", analytics_dept: "Department",
+    analytics_id: "Student ID", analytics_name: "Name",
+    analytics_dept_ph: "e.g., MBA Year 2", analytics_id_ph: "e.g., B11234567", analytics_name_ph: "Enter your name",
+    analytics_export_csv: "Export CSV Record",
+    analytics_fill_required: "Fill in all fields to unlock export",
+    group_options: ["G1","G2","G3","G4","G5","Others"],
+    analytics_total_time: "Total Study Time", analytics_total_clicks: "Total Clicks",
+    analytics_overall_acc: "Overall Quiz Accuracy",
+    analytics_module: "Module", analytics_time: "Time Spent",
+    analytics_clicks: "Clicks", analytics_acc: "Accuracy",
+    analytics_correct_ans_total: "Correct / Answered / Total",
+    analytics_no_data: "Not attempted", analytics_sec: "sec", analytics_times: "times",
+    // M1
+    m1_nav: "Intro to Entrepreneurship",
+    m1_title: "What is Entrepreneurship?",
+    m1_p1: "Entrepreneurship is the creation and management of a new enterprise to accomplish some objective. Prof. Karl T. Ulrich notes that entrepreneurship can range enormously in scale—from a street vendor selling fish sandwiches in Istanbul to a tech company building flying cars.",
+    m1_p2: '"The goal of entrepreneurship is rarely just to make money—financial sustainability is the necessary condition that allows entrepreneurs to pursue their true objectives."',
+    m1_p3: "Financial sustainability is the critical requirement for any venture. For product companies: Q(p-c) > F, where sales revenue minus variable costs must exceed fixed costs. For service companies: LTV > CAC, where customer lifetime value must exceed acquisition cost.",
+    m1_cards: [
+      { title: "Product Business Formula", desc: "Q × (p−c) > F\nUnits Sold × Gross Margin > Fixed Costs\nExample: 20,000 units × ($50−$20) = $600,000 > $400,000 ✓" },
+      { title: "Service Business Formula", desc: "LTV > CAC\nCustomer Lifetime Value > Customer Acquisition Cost\nExample: LTV $5,000 > CAC $3,000 ✓" }
+    ],
+    m1_terms: [
+      { front: "Entrepreneurship", back: "The creation and management of a new enterprise to accomplish some objective, regardless of scale." },
+      { front: "Financial Sustainability", back: "Long-term positive cash flow: Q(p-c) > F for product firms, or LTV > CAC for service firms." },
+      { front: "Gross Margin", back: "The difference between price and unit cost (p−c), reflecting the profitability of each sale before fixed costs." }
+    ],
+    m1_q: [
+      { q: "What is the definition of entrepreneurship?", opts: ["Only tech startups","Creation and management of a new enterprise to accomplish an objective","Only VC-backed companies","Must aim for IPO"], ans: 1, exp: "Entrepreneurship broadly covers all new enterprises regardless of size, with the core being purposeful creation and management." },
+      { q: "What is the financial sustainability condition for product companies?", opts: ["Q × p > F","Q × (p−c) > F","LTV > CAC","p > c + F"], ans: 1, exp: "Q(p-c) > F means revenue minus variable costs (gross margin × quantity) must exceed fixed costs." },
+      { q: "LTV > CAC applies to which type of business?", opts: ["Manufacturing","Physical retail","Service and subscription businesses","Agriculture"], ans: 2, exp: "LTV (Customer Lifetime Value) > CAC (Customer Acquisition Cost) is the sustainability formula for subscription/service models." },
+      { q: "In the Belle-V bottle opener example, what is the gross margin per unit?", opts: ["$50","$20","$30","$400,000"], ans: 2, exp: "p ($50) - c ($20) = $30 gross margin per unit." },
+      { q: "What is typically the PRIMARY goal of entrepreneurs?", opts: ["Making money","Achieving a specific objective; financial sustainability is necessary but secondary","Getting government grants","Maximizing company size"], ans: 1, exp: "Most entrepreneurs have goals beyond money, but financial sustainability is still required to pursue those goals." },
+      { q: "What is the approximate 10-year survival rate for US businesses (SBA data)?", opts: ["78.5%","53.3%","33.5%","15%"], ans: 2, exp: "According to the US Small Business Administration, approximately 33.5% of businesses survive to 10 years." },
+      { q: "In the financial formula Q(p-c) > F, what does F represent?", opts: ["Per-unit cost","Fixed costs (rent, salaries, etc.)","Financing amount","Profit"], ans: 1, exp: "F = Fixed costs, expenses that remain constant regardless of sales volume, such as rent, advertising, and salaries." },
+      { q: "Which of the following was NOT an example used by Prof. Ulrich?", opts: ["Bedtime Math","Raaka Chocolate","Terrafugia","Tesla"], ans: 3, exp: "Prof. Ulrich cited Bedtime Math, Raaka Chocolate, and Terrafugia as examples. Tesla was not mentioned." }
+    ],
+    // M2
+    m2_nav: "Entrepreneur Profile",
+    m2_title: "Who Is an Entrepreneur? Debunking Myths",
+    m2_p1: "Prof. Ethan Mollick identifies three common misconceptions about entrepreneurs: only young people (like Zuckerberg) succeed, entrepreneurship is male-dominated, or specific personality traits are required. Research shows all three are myths.",
+    m2_p2: '"There is no such thing as a typical entrepreneur—entrepreneurs are far more diverse than commonly believed, and age, gender, and background are not determining factors."',
+    m2_p3: "Research shows: older entrepreneurs actually have higher success probabilities on average. In the US, ~38% of businesses are started by women, 36% by minorities. Overconfidence increases entrepreneurial efforts but does not necessarily improve success rates.",
+    m2_cards: [
+      { title: "Myth 1: Age", desc: "Research shows that older entrepreneurs are actually MORE likely to achieve successful exits (IPO or acquisition). Entrepreneurs in their 40s-60s often outperform those in their 20s." },
+      { title: "Myth 2: Race & Gender", desc: "38% of US businesses are founded by women, 36% by minorities. Crowdfunding research shows no impact of race or gender on outcomes once funding is secured." },
+      { title: "Myth 3: Personality", desc: "Overconfidence increases entrepreneurial action but doesn't guarantee success. Passion seems positive but is not conclusively proven. No single entrepreneurial personality exists." }
+    ],
+    m2_terms: [
+      { front: "Entrepreneur Profile", back: "Research shows entrepreneurs are highly diverse; age, gender, and background are not key determinants of entrepreneurial success." },
+      { front: "Survivorship Bias", back: "The error of focusing only on successful young entrepreneurs while ignoring equally successful older ones, creating the myth that entrepreneurship is for the young." },
+      { front: "Overconfidence", back: "Overestimating success probability; increases entrepreneurial action but research does not show it directly improves actual success rates." }
+    ],
+    m2_q: [
+      { q: "What does research show about the relationship between age and entrepreneurial success?", opts: ["Younger is better","Older entrepreneurs have higher success probabilities","Age has no relationship to success","Only 25-35 year olds are optimal"], ans: 1, exp: "Multiple studies show older entrepreneurs benefit from experience, networks, and resources, leading to higher success rates." },
+      { q: "Approximately what percentage of US businesses are started by women?", opts: ["~18%","~28%","~38%","~48%"], ans: 2, exp: "According to the Global Entrepreneurship Monitor (GEM) 2016, approximately 38% of US businesses are started by women." },
+      { q: "What is the effect of overconfidence on entrepreneurship?", opts: ["Reduces effort but improves success","Increases action but does not necessarily improve success rates","Has no effect","Is required for success"], ans: 1, exp: "Overconfidence drives people to start businesses, but research shows it does not directly lead to better outcomes." },
+      { q: "What is the main research conclusion about entrepreneurial personality?", opts: ["Extroverts are best suited","High risk tolerance is necessary","No single clear entrepreneurial personality","Passion is the decisive factor"], ans: 2, exp: "Research consistently shows no single 'entrepreneur personality'—the diversity of entrepreneurs far exceeds common conceptions." },
+      { q: "Which of the following is a common myth about entrepreneurs?", opts: ["Entrepreneurs need financial sustainability","Only young people can succeed","Clear objectives matter","Financial analysis is important"], ans: 1, exp: "'Only the young can succeed' is a survivorship bias myth—research actually shows older entrepreneurs tend to have higher success rates." },
+      { q: "Crowdfunding research shows that once funding is secured, gender's impact on outcomes is:", opts: ["Women perform significantly worse","Men have significant advantages","No significant impact","Race is the primary factor"], ans: 2, exp: "Crowdfunding studies show that once funding is achieved, gender, race, and family status have no significant impact on outcomes." },
+      { q: "What is the current research conclusion on passion's effect on entrepreneurship?", opts: ["Definitively a decisive success factor","Seems positive, but research is not conclusive","Proven to be irrelevant","Reduces success probability"], ans: 1, exp: "Passion appears to have positive effects, but academic research has not yet reached a definitive conclusion." },
+      { q: "Which best describes the diversity of entrepreneurs?", opts: ["Primarily 20-30 year old white males","Only elite university graduates","A diverse group spanning all ages, genders, and backgrounds","Usually with specific STEM backgrounds"], ans: 2, exp: "Research consistently shows entrepreneurs are far more diverse than stereotypes suggest, encompassing people from all backgrounds." }
+    ],
+    // M3
+    m3_nav: "Entrepreneurship in Firms",
+    m3_title: "Entrepreneurship in Established Firms",
+    m3_p1: "Prof. Lori Rosenkopf notes that established firms can also be entrepreneurial. This is called 'intrapreneurship' or 'ambidextrous innovation'—simultaneously exploiting existing advantages while exploring new opportunities.",
+    m3_p2: '"The most successful companies balance stable day-to-day operations with continuous exploration of potentially disruptive opportunities."',
+    m3_p3: "Clay Christensen's disruptive innovation theory: new technologies typically enter from the low end or periphery, gradually exceeding mainstream performance. Established firms can maintain innovation through three strategies: internal development, partnerships, and acquisitions.",
+    m3_timeline: [
+      { title: "Internal Development", desc: "Protect exploration through separate organizational units or dedicated individual time (e.g., Google X, 3M's 15% time, LinkedIn's [in]cubator).", highlight: false },
+      { title: "Strategic Partnerships", desc: "Collaborate with startups or complementary firms (e.g., Tesla-Toyota, Tesla-Airbnb partnerships) to access new capabilities.", highlight: true },
+      { title: "Acquisitions", desc: "Purchase startups directly (e.g., Facebook acquiring Instagram, Oculus, WhatsApp) to rapidly gain new technology and users.", highlight: false }
+    ],
+    m3_terms: [
+      { front: "Ambidextrous Innovation", back: "A firm's ability to simultaneously 'exploit' (optimize existing business) and 'explore' (discover new opportunities)." },
+      { front: "Disruptive Innovation", back: "Clayton Christensen's theory: new entrants use lower-performance but lower-cost solutions that improve over time to displace incumbents." },
+      { front: "Corporate Venturing", back: "Large firms invest in external startups via corporate VC funds (e.g., Google Ventures, Intel Capital) to access innovation and talent." }
+    ],
+    m3_q: [
+      { q: "What is the core concept of 'ambidextrous innovation'?", opts: ["Focus only on core business","Simultaneously exploit existing business AND explore new opportunities","Acquire all competitors","Abandon old business models"], ans: 1, exp: "Ambidextrous innovation requires doing both exploitation and exploration simultaneously—neither can be neglected." },
+      { q: "According to Christensen, disruptive technologies typically enter from:", opts: ["The premium market","The mainstream market","The low end or fringe market","Government procurement"], ans: 2, exp: "Disruptive innovation starts with inferior but cheaper solutions in underserved markets, gradually improving to displace mainstream." },
+      { q: "The three strategies for innovation in established firms are:", opts: ["R&D, Marketing, HR","Internal Development, Partnerships, Acquisitions","Financing, IPO, Expansion","Research, Development, Sales"], ans: 1, exp: "Three strategies: Internal Development, Strategic Partnerships, and Acquisitions." },
+      { q: "3M's '15% time' policy is an example of which innovation strategy?", opts: ["Acquiring startups","Strategic alliances","Internal development with dedicated individual time","Government partnership"], ans: 2, exp: "3M's policy of giving employees time for personal projects is a form of protected exploration within internal development strategy." },
+      { q: "Facebook acquiring Instagram, WhatsApp represents which innovation strategy?", opts: ["Internal development","Strategic partnerships","Acquisitions","Corporate restructuring"], ans: 2, exp: "Facebook rapidly gained new technologies and user bases through acquisitions—a classic example of the acquisition strategy." },
+      { q: "The main purpose of Corporate Venturing is:", opts: ["Pure financial returns","Access to innovation insights, technology, and talent","Tax reduction","Legal risk avoidance"], ans: 1, exp: "Corporate VC is primarily about accessing frontier innovation and building ecosystem relationships; financial returns are secondary." },
+      { q: "In ambidextrous innovation, 'exploitation' refers to:", opts: ["Exploring entirely new markets","Optimizing existing business and resources","Acquiring external companies","Disrupting one's own business"], ans: 1, exp: "Exploitation means leveraging existing capabilities and market advantages to continuously optimize current business operations." },
+      { q: "To protect internal 'exploration', the most common approach is:", opts: ["Increase marketing budget","Eliminate underperforming divisions","Create separate organizational units or dedicated innovation time","Deploy AI systems company-wide"], ans: 2, exp: "Separate units (like Google X) or time allocations (like 3M's 15%) protect exploratory projects from being crowded out by daily business pressures." }
+    ],
+    // M4
+    m4_nav: "Society & Entrepreneurship",
+    m4_title: "Entrepreneurship's Role in Society",
+    m4_p1: "Prof. Lori Rosenkopf emphasizes that the entrepreneurial ecosystem consists of three key actors: startups (bringing innovative ideas), venture capitalists (providing funding), and established firms (providing resources and exit opportunities). These three form a mutually dependent innovation ecosystem.",
+    m4_p2: '"Small businesses represent over 99% of US enterprises and create 67% of private-sector jobs—entrepreneurship is not just personal wealth creation, it is the engine of societal progress."',
+    m4_p3: "In the US, approximately 3 out of every 1,000 adults are self-employed entrepreneurs (Kauffman Foundation, 2014). Small businesses (<250 employees) account for 99%+ of all US enterprises, creating 67% of private-sector jobs and 37% of high-tech employment.",
+    m4_cards: [
+      { title: "The Triangular Ecosystem", desc: "Startups ↔ VCs (funding)\nStartups ↔ Established Firms (funding + acquisitions)\nThis ecosystem allows innovation to flow continuously, with talent moving from large firms to startups, and innovation being absorbed back by incumbents." },
+      { title: "Unicorns & Venture Value", desc: "In 2015, Uber's valuation exceeded $45B, with over 80 startups valued at $1B+. From 2004-2013, over 800 VC-backed exits exceeded $100M, with 145 exceeding $1B." }
+    ],
+    m4_terms: [
+      { front: "Unicorn Company", back: "A private startup valued at over $1 billion, representing the highest benchmark of entrepreneurial success." },
+      { front: "VC Ecosystem", back: "The innovation capital market composed of startups, VCs, angels, and corporations—mutually dependent and self-reinforcing." },
+      { front: "Job Creation", back: "Startups and small businesses are the primary source of private-sector employment, accounting for 67% of US private jobs." }
+    ],
+    m4_q: [
+      { q: "What percentage of US enterprises have fewer than 250 employees?", opts: ["~50%","~75%","Over 99%","~90%"], ans: 2, exp: "Of the 28 million US enterprises, over 99% have fewer than 250 employees—they are the backbone of employment and innovation." },
+      { q: "What percentage of US private-sector jobs do small businesses create?", opts: ["~30%","~45%","~67%","~85%"], ans: 2, exp: "According to the US Small Business Association, small businesses create 67% of private-sector jobs, including 37% of high-tech jobs." },
+      { q: "The three core actors in the entrepreneurial ecosystem are:", opts: ["Government, corporations, individuals","Startups, VCs, established firms","Banks, lawyers, consultants","Founders, employees, customers"], ans: 1, exp: "The three form a mutually dependent ecosystem: startups bring innovation, VCs provide capital, established firms offer resources and exit paths." },
+      { q: "How many adults per 1,000 are entrepreneurs in the US (Kauffman 2014)?", opts: ["1","3","10","20"], ans: 1, exp: "2014 data shows approximately 3 out of every 1,000 US adults are self-employed entrepreneurs." },
+      { q: "From 2004-2013, how many VC-backed exits exceeded $100M?", opts: ["~100","Over 800","~300","Over 2,000"], ans: 1, exp: "Over 800 VC-backed companies had exits exceeding $100M, with 145 exceeding $1B." },
+      { q: "'Unicorn company' refers to:", opts: ["Most technologically advanced firms","Private startups valued over $1 billion","Companies listed for over 1 year","Companies founded by top university graduates"], ans: 1, exp: "Unicorn companies are private startups valued at over $1 billion—an important metric of entrepreneurial success." },
+      { q: "Which is NOT a primary contribution of entrepreneurship to society?", opts: ["Job creation","Driving technological innovation","Monopolizing markets to reduce competition","Stimulating economic growth"], ans: 2, exp: "Entrepreneurship contributes through job creation, innovation, and economic growth. Market monopolization is generally anti-competitive." },
+      { q: "The primary role of established firms in the entrepreneurial ecosystem is:", opts: ["Block startup competition","Provide capital, resources, and acquisition exits","Replace startups","Control venture capitalists"], ans: 1, exp: "Established firms sustain the ecosystem by providing funding through corporate VC, strategic partnerships, and acquisition pathways." }
+    ],
+    // M5
+    m5_nav: "Types of Enterprises",
+    m5_title: "The Five Types of Entrepreneurial Ventures",
+    m5_p1: "Prof. Ethan Mollick notes that not all startups are the same. Based on goals, resource requirements, growth ambitions, and exit strategies, ventures fall into five main types. Understanding which type you are is the critical first step in strategy.",
+    m5_p2: '"Knowing what kind of entrepreneur you are tells you what resources you need, what challenges you will face, and what success means for you."',
+    m5_cards: [
+      { title: "🏠 Lifestyle", desc: "Businesses run as hobbies or supplemental income sources. Goal: enjoy what you do. Minimal funding, no scaling, no exit planned. (Example: Etsy craft sellers)" },
+      { title: "🏪 Small Business", desc: "Most common type globally. Goal: 'feed the family,' be one's own boss. Funded by loans or personal investment. Over 2/3 don't want to grow." },
+      { title: "🚀 High Growth Startup", desc: "The Silicon Valley model: goal is to be the next Google/Uber or be acquired. Relies on VC/angel funding. Exit via IPO or acquisition." },
+      { title: "🏢 Intrapreneurship", desc: "Startups inside larger companies using corporate resources. Exit is adoption into the parent firm." },
+      { title: "🌍 Social Venture", desc: "Primary goal is social mission. Funded by grants, foundations, impact funds. No exit typically planned." }
+    ],
+    m5_terms: [
+      { front: "High Growth Startup", back: "Aims for rapid scaling, IPO or high-value acquisition. Relies on VC funding. The archetypal 'Silicon Valley model.'" },
+      { front: "Social Venture", back: "Prioritizes social mission while pursuing financial sustainability. Pursues the 'triple bottom line': profit, social impact, environmental impact." },
+      { front: "Intrapreneurship", back: "Entrepreneurial innovation within an existing large organization, using company resources while maintaining startup-like agility." }
+    ],
+    m5_q: [
+      { q: "Which type of venture most emphasizes rapid growth and financial exits?", opts: ["Lifestyle","Small business","High growth startup","Social venture"], ans: 2, exp: "High growth startups target IPO or high-value acquisition, requiring VC funding and pursuing extreme scaling." },
+      { q: "What is a key characteristic of small businesses?", opts: ["Targeting IPO","Over 2/3 don't want to grow significantly","Must have VC backing","Focus on social mission"], ans: 1, exp: "Small businesses are the most common globally, with over 2/3 of owners not seeking significant expansion." },
+      { q: "What is the primary funding source for social ventures?", opts: ["Venture capital","IPO fundraising","Government grants, foundations, impact funds","Bank loans"], ans: 2, exp: "Social ventures typically don't fit traditional VC, needing 'patient capital' from foundations (e.g., Gates Foundation) and government grants." },
+      { q: "An Etsy craft seller most likely belongs to which type?", opts: ["High growth startup","Lifestyle","Intrapreneurship","Social venture"], ans: 1, exp: "Etsy sellers are typically passion-driven with supplemental income goals, no scaling plans—the archetypal lifestyle business." },
+      { q: "The typical 'exit' for intrapreneurship is:", opts: ["IPO","Acquisition by external company","Adoption into the parent firm","Business closure"], ans: 2, exp: "Successful intrapreneurship results in the project being formally adopted by the parent company as a new business line." },
+      { q: "'Triple Bottom Line' refers to:", opts: ["Revenue, cost, profit","Profit, social impact, environmental impact","Market, product, channel","People, technology, capital"], ans: 1, exp: "Social ventures pursue the triple bottom line: financial Profit, Social impact (People), and Environmental impact (Planet)." },
+      { q: "High growth startups primarily rely on which type of funding?", opts: ["Bank loans","Government grants","Venture capital (VC) and angel investment","Friends and family loans"], ans: 2, exp: "High growth startups need large, fast capital to fuel expansion—primarily relying on VC funds and angel investors." },
+      { q: "Which venture types are MOST accurately described as 'not planning an exit'?", opts: ["High growth startups","Lifestyle ventures and social ventures","Intrapreneurship","Small businesses"], ans: 1, exp: "Both lifestyle ventures (driven by enjoyment) and social ventures (driven by mission) typically don't plan formal exits." }
+    ],
+    // M6
+    m6_nav: "Tech Entrepreneurship",
+    m6_title: "Technology Entrepreneurship: Windows & Competitive Advantage",
+    m6_p1: "Prof. David H. Hsu notes that technological change creates unique opportunity windows for entrepreneurs. Genentech with recombinant DNA, Google and Facebook with the internet—these are all cases of entrepreneurs seizing opportunities at technological inflection points. However, technological progress alone does not guarantee success; business model, resource assembly, and entry strategy are equally critical.",
+    m6_p2: '"Technology is the catalyst of entrepreneurship, but not the sufficient condition—entrepreneurs must find the perfect balance between technology, business model, and resource assembly."',
+    m6_p3: "Profit distribution in tech entrepreneurship depends on two core factors: Appropriability (ability to control knowledge) and Complementary Assets (other resources needed to commercialize). The relative importance of these factors shifts across the technology lifecycle.",
+    m6_cards: [
+      { title: "Appropriability", desc: "If innovation knowledge can be completely 'appropriated,' others cannot replicate it—uniqueness is tremendous bargaining power. Sources: IP protection, trade secrecy, and speed (first-mover advantage)." },
+      { title: "Complementary Assets", desc: "Additional resources needed to commercialize innovation: manufacturing capability, distribution channels, brand reputation, customer relationships. At maturity, often more important than the core technology." }
+    ],
+    m6_timeline: [
+      { title: "Ferment", desc: "Multiple technology solutions compete; uniqueness is high but complementary assets are scarce. Core advantage comes from knowledge uniqueness.", highlight: false },
+      { title: "Takeoff", desc: "Dominant design begins to emerge; uniqueness declines as complementary assets grow in importance.", highlight: true },
+      { title: "Maturity", desc: "Technology standardized; low uniqueness. Complementary assets (brand, channels, scale) become the primary competitive advantage.", highlight: false }
+    ],
+    m6_terms: [
+      { front: "Dominant Design", back: "The standard specification that emerges after technological competition ends. Once established, competition shifts to complementary assets and execution efficiency." },
+      { front: "Appropriability", back: "An entrepreneur's ability to control and protect innovation knowledge from being copied. Sources: patents, trade secrets, first-mover advantage." },
+      { front: "Tech Cluster", back: "Geographic concentrations of tech entrepreneurship (Silicon Valley, Boston) formed by labor market, capital market, and knowledge spillover concentration effects." }
+    ],
+    m6_q: [
+      { q: "In which stage of the technology lifecycle do entrepreneurs have the highest 'uniqueness' advantage?", opts: ["Maturity","Takeoff","Ferment","Decline"], ans: 2, exp: "During Ferment, technology is not yet standardized and innovators' knowledge is most unique, giving them the strongest bargaining position." },
+      { q: "Which is NOT a source of appropriability?", opts: ["IP protection","Trade secrets","Speed/first-mover advantage","Advertising and marketing"], ans: 3, exp: "Appropriability sources include IP protection, trade secrets, and speed advantage. Marketing is a complementary asset, not appropriability." },
+      { q: "From 1980-2013, VC-backed firms represented what percentage of US IPOs?", opts: ["~15%","~36%","~58% (tech IPOs)","~80%"], ans: 1, exp: "VC-backed firms represented 36% of all US IPOs, but 58% of technology-specific IPOs." },
+      { q: "Why do tech entrepreneurship clusters form in Silicon Valley?", opts: ["Pleasant climate","Concentrated labor markets, capital markets, and knowledge spillovers","Government subsidies","Low costs"], ans: 1, exp: "Silicon Valley's cluster effects stem from labor market flexibility, concentrated venture capital, and knowledge spillovers among peers." },
+      { q: "At which technology stage are complementary assets MOST important?", opts: ["Ferment","Takeoff","Maturity","R&D stage"], ans: 2, exp: "At maturity, technology is standardized, core uniqueness diminishes, and distribution channels, brand, and customer relationships become the key differentiators." },
+      { q: "What advantage do founding teams with both technical AND commercial knowledge have?", opts: ["Lower R&D costs","Better balance between innovation and commercialization","More funding opportunities","Avoiding government regulation"], ans: 1, exp: "Teams combining technical and commercial knowledge can more effectively translate technology into commercial value—a key success factor in tech entrepreneurship." },
+      { q: "What does the 'PayPal Mafia' phenomenon illustrate?", opts: ["PayPal is the most successful tech company","Successful companies are important sources of the next generation of entrepreneurs","Silicon Valley pays the highest salaries","Only elite graduates can succeed"], ans: 1, exp: "Thiel, Musk, Hoffman and other PayPal alumni founded multiple important companies, demonstrating successful companies as 'cradles' of the entrepreneurial ecosystem." },
+      { q: "The 'Takeoff' phase in the technology S-curve is characterized by:", opts: ["Technology just invented, not yet commercial","Dominant design emerging, market rapidly expanding","Technology mature, growth slowing","Technology displaced by next generation"], ans: 1, exp: "Takeoff is the stage when technology adoption begins to scale rapidly and the market expands quickly as dominant design forms." }
+    ],
+    // M7
+    m7_nav: "Impact Entrepreneurship",
+    m7_title: "Impact Entrepreneurship: Business Models That Change the World",
+    m7_p1: "Prof. Kartik Hosanagar defines impact entrepreneurship as creating enterprises that are ethical and have meaningful impact on our lives. Unlike pure nonprofits, they pursue profit. Unlike traditional entrepreneurs, they focus on a 'triple bottom line': profit, social impact, and environmental impact. Common areas include healthcare, sanitation, education, and energy.",
+    m7_p2: '"Impact entrepreneurs believe that business can be the most powerful tool for solving social problems—provided that social mission becomes the core of the business model, not an add-on."',
+    m7_p3: "Impact enterprises face two core challenges: Scaling and Financing. Traditional VCs are often not an option—'patient capital' is needed. Successful social entrepreneurs adopt three principles: lead with product, ensure mission is authentic, implement simply (like Warby Parker's 'buy one, give one' model).",
+    m7_examples: [
+      { name: "Muhammad Yunus – GrameenBank", desc: "Provides microloans to rural poor in Bangladesh, serving 8M+ borrowers with 95%+ repayment rates." },
+      { name: "Iqbal Quadir – GrameenPhone", desc: "Belief that connectivity empowers the poor; built Bangladesh's largest telecom with 50M+ subscribers." },
+      { name: "Warby Parker / TOMS Shoes", desc: "Integrates social mission into business model via 'buy one, give one,' using brand personality to drive consumer behavior while achieving social goals." }
+    ],
+    m7_terms: [
+      { front: "Triple Bottom Line", back: "The impact entrepreneurship evaluation framework: financial Profit + Social impact (People) + Environmental impact (Planet)." },
+      { front: "Patient Capital", back: "Investment accepting longer return periods and lower financial returns in exchange for maximizing social impact (e.g., Acumen Fund)." },
+      { front: "Scaling", back: "Strategies for impact enterprises to expand reach: franchise partners, policy advocacy, and partnering with organizations that have last-mile service capacity." }
+    ],
+    m7_q: [
+      { q: "What is the core characteristic of impact entrepreneurship?", opts: ["Focus only on social good, not profit","Pursue triple bottom line: profit, social, and environmental impact","Nonprofits working with government","Self-sufficient enterprises needing no funding"], ans: 1, exp: "Impact entrepreneurship is both financially sustainable and has social/environmental mission at its core—a third path between traditional business and pure charity." },
+      { q: "GrameenBank's innovation was:", opts: ["Offering high-interest loans","Providing uncollateralized microloans to rural poor","Serving only corporate clients","Focusing on urban middle class"], ans: 1, exp: "GrameenBank broke traditional banking's collateral requirement, serving rural poor with microloans—and achieving 95%+ repayment rates." },
+      { q: "The two major challenges impact enterprises most commonly face are:", opts: ["Talent recruitment and R&D","Scaling and financing","Government regulation and taxes","Marketing and branding"], ans: 1, exp: "Serving remote or underserved populations is costly, making scaling difficult; traditional VC doesn't fit, requiring special financing channels." },
+      { q: "According to Warby Parker's CEO, social mission ranks what in consumer decision-making?", opts: ["1st","2nd","3rd","4th"], ans: 3, exp: "Consumers prioritize design, cost, and quality first. Social mission typically ranks 4th but creates brand personality that indirectly influences purchase decisions." },
+      { q: "What characterizes 'patient capital'?", opts: ["Pursuing fast, high returns","Accepting longer return periods to maximize social impact","Only investing in mature markets","Government-provided grants"], ans: 1, exp: "Patient capital (like Acumen Fund) accepts lower and slower financial returns, prioritizing sustainable social impact." },
+      { q: "What was GrameenPhone founder Iqbal Quadir's core belief?", opts: ["Phones are luxury goods","Connectivity improves income and employment for the poor","Only cities need telecom services","Technology cannot solve poverty"], ans: 1, exp: "Quadir believed connectivity boosts productivity and employment. He built Bangladesh's largest telecom, becoming an impact entrepreneurship icon." },
+      { q: "The three principles for successfully integrating social mission with business model are:", opts: ["Low cost, high efficiency, rapid scaling","Lead with product, ensure mission is authentic, implement simply","Prioritize charity, then profit, then scale","Technology-first, market penetration, IPO exit"], ans: 1, exp: "Prof. Hosanagar's principles: product quality first, social mission must be genuine, execution must be simple and understandable (like 'buy one, give one')." },
+      { q: "Teamlease's main growth barrier in India was:", opts: ["Lack of technical talent","Unclear labor laws","Financing difficulties","Market too small"], ans: 1, exp: "Teamlease helps Indians find jobs, but India's unclear labor regulations became a key barrier to scaling the social enterprise." }
+    ],
+    date: "Version 2025.03",
+    copyright: "© 2025 Wharton Online Entrepreneurship",
+    architect: "Course: Entrepreneurship Specialization"
+  }
+};
+
+// SVG Icons
+const IconBookOpen = ({size=24,className=""})=><svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>;
+const IconAlertTriangle = ({size=24,className=""})=><svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>;
+const IconChevronRight = ({size=24,className=""})=><svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><polyline points="9 18 15 12 9 6"/></svg>;
+const IconMenu = ({size=24,className=""})=><svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><line x1="4" y1="12" x2="20" y2="12"/><line x1="4" y1="6" x2="20" y2="6"/><line x1="4" y1="18" x2="20" y2="18"/></svg>;
+const IconX = ({size=24,className=""})=><svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>;
+const IconBarChart2 = ({size=24,className=""})=><svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>;
+const IconMoon = ({size=24,className=""})=><svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>;
+const IconSun = ({size=24,className=""})=><svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>;
+const IconPlay = ({size=24,className=""})=><svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><polygon points="5 3 19 12 5 21 5 3"/></svg>;
+const IconPause = ({size=24,className=""})=><svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg>;
+const IconSquare = ({size=24,className=""})=><svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/></svg>;
+const IconChevronUp = ({size=24,className=""})=><svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><polyline points="18 15 12 9 6 15"/></svg>;
+const IconArrowRight = ({size=24,className=""})=><svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>;
+const IconBriefcase = ({size=24,className=""})=><svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><rect x="2" y="7" width="20" height="14" rx="2" ry="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg>;
+const IconUsers = ({size=24,className=""})=><svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>;
+const IconGlobe = ({size=24,className=""})=><svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>;
+const IconTrendingUp = ({size=24,className=""})=><svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>;
+const IconCpu = ({size=24,className=""})=><svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><rect x="4" y="4" width="16" height="16" rx="2"/><rect x="9" y="9" width="6" height="6"/><line x1="9" y1="1" x2="9" y2="4"/><line x1="15" y1="1" x2="15" y2="4"/><line x1="9" y1="20" x2="9" y2="23"/><line x1="15" y1="20" x2="15" y2="23"/><line x1="20" y1="9" x2="23" y2="9"/><line x1="20" y1="14" x2="23" y2="14"/><line x1="1" y1="9" x2="4" y2="9"/><line x1="1" y1="14" x2="4" y2="14"/></svg>;
+const IconHeart = ({size=24,className=""})=><svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>;
+
+const TOTAL = 8; // 7 modules + 1 analytics
+
+const FlipCard = ({ front, back, t }) => {
+  const [flipped, setFlipped] = useState(false);
+  return (
+    <div className="perspective cursor-pointer h-36" onClick={() => setFlipped(!flipped)}>
+      <div className={`transform-style-3d relative w-full h-full transition-transform duration-500 ${flipped ? 'rotate-y-180' : ''}`}>
+        <div className="backface-hidden absolute inset-0 bg-white dark:bg-slate-800 rounded-xl p-4 flex flex-col items-center justify-center border border-slate-200 dark:border-slate-700 shadow-sm">
+          <p className="font-serif font-bold text-center text-[#004030] dark:text-[#D8C3A5] text-sm">{front}</p>
+          <p className="text-xs text-slate-400 mt-2">{t.flip_prompt}</p>
+        </div>
+        <div className="backface-hidden rotate-y-180 absolute inset-0 bg-[#004030] dark:bg-slate-700 rounded-xl p-4 flex items-center justify-center">
+          <p className="text-sm text-center text-[#D8C3A5] dark:text-slate-200 leading-relaxed">{back}</p>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+const ModuleQuiz = ({ questions, t, moduleId, onQuizSubmit }) => {
+  const [selected, setSelected] = useState({});
+  const [submitted, setSubmitted] = useState(false);
+  const [quizQuestions] = useState(() => [...questions].sort(() => Math.random() - 0.5).slice(0, 4));
+  const correctCount = submitted ? quizQuestions.filter((q, i) => selected[i] === q.ans).length : 0;
+  const handleSubmit = () => {
+    if (Object.keys(selected).length < quizQuestions.length) return;
+    setSubmitted(true);
+    onQuizSubmit(moduleId, correctCount, quizQuestions.length);
+  };
+  const handleRetry = () => { setSelected({}); setSubmitted(false); };
+  return (
+    <div className="mt-8 bg-slate-50 dark:bg-slate-900 rounded-2xl p-6 border border-slate-200 dark:border-slate-700">
+      <h3 className="font-serif font-bold text-xl text-[#004030] dark:text-[#D8C3A5] mb-6 flex items-center">
+        <IconBookOpen size={20} className="mr-2"/>{t.quiz_title}
+      </h3>
+      {quizQuestions.map((q, qi) => (
+        <div key={qi} className="mb-6">
+          <p className="font-semibold text-slate-800 dark:text-slate-200 mb-3">{qi+1}. {q.q}</p>
+          <div className="space-y-2">
+            {q.opts.map((opt, oi) => {
+              let cls = "w-full text-left px-4 py-2.5 rounded-lg border text-sm transition-colors ";
+              if (!submitted) {
+                cls += selected[qi] === oi ? "border-[#004030] bg-[#004030]/10 dark:bg-[#D8C3A5]/10 text-[#004030] dark:text-[#D8C3A5] font-semibold" : "border-slate-200 dark:border-slate-600 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300";
+              } else {
+                if (oi === q.ans) cls += "border-green-500 bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-400 font-semibold";
+                else if (selected[qi] === oi) cls += "border-red-400 bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400";
+                else cls += "border-slate-200 dark:border-slate-600 text-slate-500 dark:text-slate-500";
+              }
+              return <button key={oi} className={cls} onClick={() => !submitted && setSelected({...selected, [qi]: oi})}>{opt}</button>;
+            })}
+          </div>
+          {submitted && <p className="mt-2 text-xs text-slate-500 dark:text-slate-400 italic">{t.explanation}：{q.exp}</p>}
+        </div>
+      ))}
+      {!submitted ? (
+        <button onClick={handleSubmit} disabled={Object.keys(selected).length < quizQuestions.length}
+          className="px-6 py-2.5 bg-[#004030] dark:bg-[#D8C3A5] text-white dark:text-[#004030] font-bold rounded-lg disabled:opacity-40 hover:bg-[#002b20] dark:hover:bg-white transition-colors">
+          {t.submit}
+        </button>
+      ) : (
+        <div className="flex items-center space-x-4">
+          <span className="font-bold text-lg text-[#004030] dark:text-[#D8C3A5]">{t.score}：{correctCount} / {quizQuestions.length}</span>
+          <button onClick={handleRetry} className="px-4 py-2 border border-[#004030] dark:border-[#D8C3A5] text-[#004030] dark:text-[#D8C3A5] rounded-lg hover:bg-[#004030]/10 text-sm font-semibold transition-colors">{t.retry}</button>
+        </div>
+      )}
+    </div>
+  );
+};
+
+function App() {
+  const [lang, setLang] = useState('zh');
+  const [isDark, setIsDark] = useState(false);
+  const [module, setModule] = useState(0);
+  const [menuOpen, setMenuOpen] = useState(false);
+  const [ttsState, setTtsState] = useState('idle');
+  const [studentInfo, setStudentInfo] = useState({ group:'', dept:'', id:'', name:'' });
+  const N = 7;
+  const [analytics, setAnalytics] = useState({
+    time: Array(N).fill(0),
+    clicks: Array(N).fill(0),
+    quizCorrect: Array(N).fill(0),
+    quizTotal: Array(N).fill(0)
+  });
+  const contentRef = useRef(null);
+  const timerRef = useRef(null);
+  const t = dict[lang];
+
+  useEffect(() => {
+    if (isDark) document.documentElement.classList.add('dark');
+    else document.documentElement.classList.remove('dark');
+  }, [isDark]);
+
+  useEffect(() => {
+    window.speechSynthesis && window.speechSynthesis.cancel();
+    setTtsState('idle');
+    if (contentRef.current) contentRef.current.scrollTop = 0;
+    if (timerRef.current) clearInterval(timerRef.current);
+    if (module < N) {
+      timerRef.current = setInterval(() => {
+        setAnalytics(a => { const t2 = [...a.time]; t2[module]++; return {...a, time: t2}; });
+      }, 1000);
+    }
+    return () => clearInterval(timerRef.current);
+  }, [module]);
+
+  const handleClick = () => {
+    if (module < N) setAnalytics(a => { const c = [...a.clicks]; c[module]++; return {...a, clicks: c}; });
+  };
+
+  const handleQuizSubmit = (modId, correct, total) => {
+    if (modId < N) setAnalytics(a => {
+      const qc = [...a.quizCorrect]; const qt = [...a.quizTotal];
+      qc[modId] = correct; qt[modId] = total;
+      return {...a, quizCorrect: qc, quizTotal: qt};
+    });
+  };
+
+  const handleTTS = (action) => {
+    if (!('speechSynthesis' in window)) return;
+    if (action === 'stop') { window.speechSynthesis.cancel(); setTtsState('idle'); return; }
+    if (action === 'pause') { window.speechSynthesis.pause(); setTtsState('paused'); return; }
+    if (action === 'play') {
+      if (ttsState === 'paused') { window.speechSynthesis.resume(); setTtsState('playing'); return; }
+      window.speechSynthesis.cancel();
+      const mKeys = ['m1','m2','m3','m4','m5','m6','m7'];
+      const mk = mKeys[module];
+      const texts = mk ? [t[`${mk}_title`], t[`${mk}_p1`], t[`${mk}_p2`], t[`${mk}_p3`]].filter(Boolean) : [t.analytics_title, t.analytics_desc];
+      const utterance = new SpeechSynthesisUtterance(texts.join('。 '));
+      utterance.rate = 0.95;
+      const voices = window.speechSynthesis.getVoices();
+      if (lang === 'zh') {
+        const v = voices.find(v => v.lang === 'zh-TW' && v.name.includes('Yating')) || voices.find(v => v.lang === 'zh-TW') || voices.find(v => v.lang.startsWith('zh'));
+        if (v) utterance.voice = v;
+        utterance.lang = 'zh-TW';
+      } else {
+        const v = voices.find(v => v.lang === 'en-GB' && v.name.includes('Daniel')) || voices.find(v => v.lang === 'en-GB') || voices.find(v => v.lang.startsWith('en'));
+        if (v) utterance.voice = v;
+        utterance.lang = 'en-GB';
+      }
+      utterance.onend = () => setTtsState('idle');
+      utterance.onerror = () => setTtsState('idle');
+      window.speechSynthesis.speak(utterance);
+      setTtsState('playing');
+    }
+  };
+
+  const handleExportCSV = () => {
+    const BOM = '\uFEFF';
+    const mNavKeys = ['m1_nav','m2_nav','m3_nav','m4_nav','m5_nav','m6_nav','m7_nav'];
+    const rows = [
+      [t.analytics_group, t.analytics_dept, t.analytics_id, t.analytics_name],
+      [studentInfo.group, studentInfo.dept, studentInfo.id, studentInfo.name],
+      [],
+      [t.analytics_module, t.analytics_time, t.analytics_clicks, t.analytics_acc, t.analytics_correct_ans_total],
+      ...Array.from({length: N}, (_,i) => {
+        const acc = analytics.quizTotal[i] > 0 ? Math.round(analytics.quizCorrect[i]/analytics.quizTotal[i]*100)+'%' : t.analytics_no_data;
+        const ans = analytics.quizTotal[i] > 0 ? `${analytics.quizCorrect[i]}/${analytics.quizTotal[i] <= analytics.quizCorrect[i] ? analytics.quizTotal[i] : analytics.quizTotal[i]}/${8}` : t.analytics_no_data;
+        return [t[mNavKeys[i]], analytics.time[i]+t.analytics_sec, analytics.clicks[i]+t.analytics_times, acc, ans];
+      })
+    ];
+    const csv = BOM + rows.map(r => r.join(',')).join('\n');
+    const a = document.createElement('a'); a.href = 'data:text/csv;charset=utf-8,' + encodeURIComponent(csv);
+    a.download = 'learning_analytics.csv'; a.click();
+  };
+
+  const modulesList = [
+    { id: 0, icon: <IconBriefcase size={16}/>, title: t.m1_nav },
+    { id: 1, icon: <IconUsers size={16}/>, title: t.m2_nav },
+    { id: 2, icon: <IconTrendingUp size={16}/>, title: t.m3_nav },
+    { id: 3, icon: <IconGlobe size={16}/>, title: t.m4_nav },
+    { id: 4, icon: <IconBarChart2 size={16}/>, title: t.m5_nav },
+    { id: 5, icon: <IconCpu size={16}/>, title: t.m6_nav },
+    { id: 6, icon: <IconHeart size={16}/>, title: t.m7_nav },
+    { id: 7, icon: <IconBarChart2 size={16}/>, title: t.analytics_title }
+  ];
+
+  const renderNavBottom = () => (
+    <div className="mt-12 flex justify-between items-center pt-8 border-t border-slate-300 dark:border-slate-700">
+      <button onClick={() => setModule(Math.max(0, module-1))} disabled={module===0}
+        className="px-6 py-3 font-serif font-bold text-slate-500 hover:text-[#004030] dark:hover:text-[#D8C3A5] disabled:opacity-0 transition-colors flex items-center uppercase text-sm tracking-wider">
+        ← {t.nav_prev}
+      </button>
+      <button onClick={() => setModule(Math.min(TOTAL-1, module+1))} disabled={module===TOTAL-1}
+        className="px-8 py-3 bg-[#004030] dark:bg-[#D8C3A5] text-white dark:text-[#004030] font-serif font-bold hover:bg-[#002b20] disabled:opacity-0 transition-colors flex items-center uppercase text-sm tracking-wider shadow-md">
+        {t.nav_next} <IconArrowRight size={16} className="ml-2"/>
+      </button>
+    </div>
+  );
+
+  const renderContent = () => {
+    const base = "space-y-6 text-base leading-relaxed text-slate-700 dark:text-slate-300 animate-fade-in";
+    // M1
+    if (module === 0) return (
+      <div className={base}>
+        <h2 className="text-3xl md:text-4xl font-serif font-black text-[#004030] dark:text-[#D8C3A5] border-b-2 border-[#D8C3A5] pb-4">{t.m1_title}</h2>
+        <p>{t.m1_p1}</p>
+        <p className="p-4 bg-slate-100 dark:bg-slate-800 rounded-lg italic font-serif text-slate-600 dark:text-slate-300">{t.m1_p2}</p>
+        <p>{t.m1_p3}</p>
+        <div className="grid md:grid-cols-2 gap-6">
+          {t.m1_cards.map((c,i) => (
+            <div key={i} className="bg-white dark:bg-slate-800 p-6 rounded-xl border-l-4 border-[#004030] shadow-sm hover:shadow-md transition-shadow">
+              <h3 className="text-lg font-bold font-serif text-[#004030] dark:text-[#D8C3A5] mb-2">{c.title}</h3>
+              <p className="text-sm font-mono whitespace-pre-line">{c.desc}</p>
+            </div>
+          ))}
+        </div>
+        <div className="bg-[#004030] text-[#D8C3A5] p-5 rounded-xl flex items-start shadow-md">
+          <IconAlertTriangle className="mr-4 shrink-0 mt-1" size={24}/>
+          <div>
+            <h4 className="font-bold font-serif text-base mb-1">{lang==='zh'?'財務可持續性不等於成功的全部':'Financial sustainability ≠ complete success'}</h4>
+            <p className="text-sm opacity-90">{lang==='zh'?'財務公式忽略了前期投資和負現金流所需的資金——新創在達到盈虧平衡前，往往需要大量初始投資。':'The formula ignores upfront investment and negative cash flow before reaching sustainability—startups often need substantial initial capital before breakeven.'}</p>
+          </div>
+        </div>
+        <div className="mt-8"><h3 className="text-sm font-bold uppercase tracking-wider text-slate-500 mb-4">{t.key_terms}</h3>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">{t.m1_terms.map((term,i) => <FlipCard key={i} front={term.front} back={term.back} t={t}/>)}</div></div>
+        <ModuleQuiz questions={t.m1_q} t={t} moduleId={0} onQuizSubmit={handleQuizSubmit}/>
+        {renderNavBottom()}
+      </div>
+    );
+    // M2
+    if (module === 1) return (
+      <div className={base}>
+        <h2 className="text-3xl md:text-4xl font-serif font-black text-[#004030] dark:text-[#D8C3A5] border-b-2 border-[#D8C3A5] pb-4">{t.m2_title}</h2>
+        <p>{t.m2_p1}</p>
+        <p className="p-4 bg-slate-100 dark:bg-slate-800 rounded-lg italic font-serif text-slate-600 dark:text-slate-300">{t.m2_p2}</p>
+        <p>{t.m2_p3}</p>
+        <div className="grid md:grid-cols-3 gap-4">
+          {t.m2_cards.map((c,i) => (
+            <div key={i} className="bg-white dark:bg-slate-800 p-5 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm hover:shadow-md transition-shadow">
+              <h3 className="text-base font-bold font-serif text-[#004030] dark:text-[#D8C3A5] mb-2">{c.title}</h3>
+              <p className="text-sm leading-relaxed">{c.desc}</p>
+            </div>
+          ))}
+        </div>
+        <div className="mt-8"><h3 className="text-sm font-bold uppercase tracking-wider text-slate-500 mb-4">{t.key_terms}</h3>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">{t.m2_terms.map((term,i) => <FlipCard key={i} front={term.front} back={term.back} t={t}/>)}</div></div>
+        <ModuleQuiz questions={t.m2_q} t={t} moduleId={1} onQuizSubmit={handleQuizSubmit}/>
+        {renderNavBottom()}
+      </div>
+    );
+    // M3
+    if (module === 2) return (
+      <div className={base}>
+        <h2 className="text-3xl md:text-4xl font-serif font-black text-[#004030] dark:text-[#D8C3A5] border-b-2 border-[#D8C3A5] pb-4">{t.m3_title}</h2>
+        <p>{t.m3_p1}</p>
+        <p className="p-4 bg-slate-100 dark:bg-slate-800 rounded-lg italic font-serif text-slate-600 dark:text-slate-300">{t.m3_p2}</p>
+        <p>{t.m3_p3}</p>
+        <div className="relative border-l-2 border-[#D8C3A5] ml-4 space-y-6">
+          {t.m3_timeline.map((step,i) => (
+            <div key={i} className="pl-8 relative">
+              <div className={`absolute -left-[17px] top-1 w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm ${step.highlight ? 'bg-[#004030] text-[#D8C3A5] ring-4 ring-white dark:ring-slate-900' : 'bg-[#D8C3A5] text-[#004030]'}`}>{i+1}</div>
+              <div className="p-4 rounded-xl bg-white dark:bg-slate-800 shadow-sm border border-slate-100 dark:border-slate-700">
+                <h4 className="font-bold font-serif text-base text-[#004030] dark:text-[#D8C3A5] mb-1">{step.title}</h4>
+                <p className="text-sm">{step.desc}</p>
+              </div>
+            </div>
+          ))}
+        </div>
+        <div className="mt-8"><h3 className="text-sm font-bold uppercase tracking-wider text-slate-500 mb-4">{t.key_terms}</h3>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">{t.m3_terms.map((term,i) => <FlipCard key={i} front={term.front} back={term.back} t={t}/>)}</div></div>
+        <ModuleQuiz questions={t.m3_q} t={t} moduleId={2} onQuizSubmit={handleQuizSubmit}/>
+        {renderNavBottom()}
+      </div>
+    );
+    // M4
+    if (module === 3) return (
+      <div className={base}>
+        <h2 className="text-3xl md:text-4xl font-serif font-black text-[#004030] dark:text-[#D8C3A5] border-b-2 border-[#D8C3A5] pb-4">{t.m4_title}</h2>
+        <p>{t.m4_p1}</p>
+        <p className="p-4 bg-slate-100 dark:bg-slate-800 rounded-lg italic font-serif text-slate-600 dark:text-slate-300">{t.m4_p2}</p>
+        <p>{t.m4_p3}</p>
+        <div className="grid md:grid-cols-2 gap-6">
+          {t.m4_cards.map((c,i) => (
+            <div key={i} className="bg-white dark:bg-slate-800 p-6 rounded-xl border-l-4 border-[#004030] shadow-sm hover:shadow-md transition-shadow">
+              <h3 className="text-base font-bold font-serif text-[#004030] dark:text-[#D8C3A5] mb-2">{c.title}</h3>
+              <p className="text-sm whitespace-pre-line">{c.desc}</p>
+            </div>
+          ))}
+        </div>
+        <div className="mt-8"><h3 className="text-sm font-bold uppercase tracking-wider text-slate-500 mb-4">{t.key_terms}</h3>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">{t.m4_terms.map((term,i) => <FlipCard key={i} front={term.front} back={term.back} t={t}/>)}</div></div>
+        <ModuleQuiz questions={t.m4_q} t={t} moduleId={3} onQuizSubmit={handleQuizSubmit}/>
+        {renderNavBottom()}
+      </div>
+    );
+    // M5
+    if (module === 4) return (
+      <div className={base}>
+        <h2 className="text-3xl md:text-4xl font-serif font-black text-[#004030] dark:text-[#D8C3A5] border-b-2 border-[#D8C3A5] pb-4">{t.m5_title}</h2>
+        <p>{t.m5_p1}</p>
+        <p className="p-4 bg-slate-100 dark:bg-slate-800 rounded-lg italic font-serif text-slate-600 dark:text-slate-300">{t.m5_p2}</p>
+        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
+          {t.m5_cards.map((c,i) => (
+            <div key={i} className="bg-white dark:bg-slate-800 p-5 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm hover:shadow-md transition-shadow hover:border-[#D8C3A5]">
+              <h3 className="text-base font-bold font-serif text-[#004030] dark:text-[#D8C3A5] mb-2">{c.title}</h3>
+              <p className="text-sm leading-relaxed">{c.desc}</p>
+            </div>
+          ))}
+        </div>
+        <div className="mt-8"><h3 className="text-sm font-bold uppercase tracking-wider text-slate-500 mb-4">{t.key_terms}</h3>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">{t.m5_terms.map((term,i) => <FlipCard key={i} front={term.front} back={term.back} t={t}/>)}</div></div>
+        <ModuleQuiz questions={t.m5_q} t={t} moduleId={4} onQuizSubmit={handleQuizSubmit}/>
+        {renderNavBottom()}
+      </div>
+    );
+    // M6
+    if (module === 5) return (
+      <div className={base}>
+        <h2 className="text-3xl md:text-4xl font-serif font-black text-[#004030] dark:text-[#D8C3A5] border-b-2 border-[#D8C3A5] pb-4">{t.m6_title}</h2>
+        <p>{t.m6_p1}</p>
+        <p className="p-4 bg-slate-100 dark:bg-slate-800 rounded-lg italic font-serif text-slate-600 dark:text-slate-300">{t.m6_p2}</p>
+        <p>{t.m6_p3}</p>
+        <div className="grid md:grid-cols-2 gap-6">
+          {t.m6_cards.map((c,i) => (
+            <div key={i} className="bg-white dark:bg-slate-800 p-6 rounded-xl border-l-4 border-[#004030] shadow-sm hover:shadow-md transition-shadow">
+              <h3 className="text-base font-bold font-serif text-[#004030] dark:text-[#D8C3A5] mb-2">{c.title}</h3>
+              <p className="text-sm">{c.desc}</p>
+            </div>
+          ))}
+        </div>
+        <h3 className="font-serif font-bold text-xl text-[#004030] dark:text-[#D8C3A5] mt-4">{lang==='zh'?'技術生命週期三階段':'Technology Lifecycle Stages'}</h3>
+        <div className="relative border-l-2 border-[#D8C3A5] ml-4 space-y-6">
+          {t.m6_timeline.map((step,i) => (
+            <div key={i} className="pl-8 relative">
+              <div className={`absolute -left-[17px] top-1 w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm ${step.highlight ? 'bg-[#004030] text-[#D8C3A5] ring-4 ring-white dark:ring-slate-900' : 'bg-[#D8C3A5] text-[#004030]'}`}>{i+1}</div>
+              <div className="p-4 rounded-xl bg-white dark:bg-slate-800 shadow-sm border border-slate-100 dark:border-slate-700">
+                <h4 className="font-bold font-serif text-base text-[#004030] dark:text-[#D8C3A5] mb-1">{step.title}</h4>
+                <p className="text-sm">{step.desc}</p>
+              </div>
+            </div>
+          ))}
+        </div>
+        <div className="mt-8"><h3 className="text-sm font-bold uppercase tracking-wider text-slate-500 mb-4">{t.key_terms}</h3>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">{t.m6_terms.map((term,i) => <FlipCard key={i} front={term.front} back={term.back} t={t}/>)}</div></div>
+        <ModuleQuiz questions={t.m6_q} t={t} moduleId={5} onQuizSubmit={handleQuizSubmit}/>
+        {renderNavBottom()}
+      </div>
+    );
+    // M7
+    if (module === 6) return (
+      <div className={base}>
+        <h2 className="text-3xl md:text-4xl font-serif font-black text-[#004030] dark:text-[#D8C3A5] border-b-2 border-[#D8C3A5] pb-4">{t.m7_title}</h2>
+        <p>{t.m7_p1}</p>
+        <p className="p-4 bg-slate-100 dark:bg-slate-800 rounded-lg italic font-serif text-slate-600 dark:text-slate-300">{t.m7_p2}</p>
+        <p>{t.m7_p3}</p>
+        <h3 className="font-serif font-bold text-xl text-[#004030] dark:text-[#D8C3A5]">{lang==='zh'?'影響力創業者案例':'Social Entrepreneur Examples'}</h3>
+        <div className="space-y-3">
+          {t.m7_examples.map((ex,i) => (
+            <div key={i} className="bg-white dark:bg-slate-800 p-4 rounded-xl border border-slate-200 dark:border-slate-700 flex items-start space-x-3">
+              <div className="w-8 h-8 rounded-full bg-[#D8C3A5] dark:bg-[#004030] flex items-center justify-center shrink-0 text-[#004030] dark:text-[#D8C3A5] font-bold text-sm">{i+1}</div>
+              <div><h4 className="font-bold font-serif text-[#004030] dark:text-[#D8C3A5] text-sm">{ex.name}</h4><p className="text-sm mt-1">{ex.desc}</p></div>
+            </div>
+          ))}
+        </div>
+        <div className="mt-8"><h3 className="text-sm font-bold uppercase tracking-wider text-slate-500 mb-4">{t.key_terms}</h3>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">{t.m7_terms.map((term,i) => <FlipCard key={i} front={term.front} back={term.back} t={t}/>)}</div></div>
+        <ModuleQuiz questions={t.m7_q} t={t} moduleId={6} onQuizSubmit={handleQuizSubmit}/>
+        {renderNavBottom()}
+      </div>
+    );
+    // Analytics
+    if (module === 7) {
+      const totalTime = analytics.time.reduce((a,b)=>a+b,0);
+      const totalClicks = analytics.clicks.reduce((a,b)=>a+b,0);
+      const totalCorrect = analytics.quizCorrect.reduce((a,b)=>a+b,0);
+      const totalAnswered = analytics.quizTotal.reduce((a,b)=>a+b,0);
+      const overallAcc = totalAnswered > 0 ? Math.round(totalCorrect/totalAnswered*100)+'%' : t.analytics_no_data;
+      const canExport = studentInfo.group && studentInfo.dept && studentInfo.id && studentInfo.name;
+      const mNavKeys = ['m1_nav','m2_nav','m3_nav','m4_nav','m5_nav','m6_nav','m7_nav'];
+      return (
+        <div className={base}>
+          <h2 className="text-3xl md:text-4xl font-serif font-black text-[#004030] dark:text-[#D8C3A5] border-b-2 border-[#D8C3A5] pb-4">{t.analytics_title}</h2>
+          <p className="text-slate-500 dark:text-slate-400">{t.analytics_desc}</p>
+          <div className="grid grid-cols-3 gap-4">
+            {[
+              {label: t.analytics_total_time, val: totalTime+t.analytics_sec},
+              {label: t.analytics_total_clicks, val: totalClicks+t.analytics_times},
+              {label: t.analytics_overall_acc, val: overallAcc}
+            ].map((s,i) => (
+              <div key={i} className="bg-white dark:bg-slate-800 rounded-xl p-4 border border-slate-200 dark:border-slate-700 text-center shadow-sm">
+                <p className="text-2xl font-black font-serif text-[#004030] dark:text-[#D8C3A5]">{s.val}</p>
+                <p className="text-xs text-slate-500 mt-1">{s.label}</p>
+              </div>
+            ))}
+          </div>
+          <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 overflow-hidden shadow-sm">
+            <table className="w-full text-sm">
+              <thead><tr className="bg-[#004030] text-[#D8C3A5]">
+                <th className="text-left p-3">{t.analytics_module}</th>
+                <th className="text-center p-3">{t.analytics_time}</th>
+                <th className="text-center p-3">{t.analytics_clicks}</th>
+                <th className="text-center p-3">{t.analytics_acc}</th>
+                <th className="text-center p-3 hidden md:table-cell">{t.analytics_correct_ans_total}</th>
+              </tr></thead>
+              <tbody>{Array.from({length:N},(_,i) => {
+                const acc = analytics.quizTotal[i] > 0 ? Math.round(analytics.quizCorrect[i]/analytics.quizTotal[i]*100)+'%' : t.analytics_no_data;
+                const ans = analytics.quizTotal[i] > 0 ? `${analytics.quizCorrect[i]}/${analytics.quizTotal[i]}/${8}` : t.analytics_no_data;
+                return <tr key={i} className="border-t border-slate-100 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700/50">
+                  <td className="p-3 font-medium text-[#004030] dark:text-[#D8C3A5]">{t[mNavKeys[i]]}</td>
+                  <td className="p-3 text-center">{analytics.time[i]}{t.analytics_sec}</td>
+                  <td className="p-3 text-center">{analytics.clicks[i]}{t.analytics_times}</td>
+                  <td className="p-3 text-center">{acc}</td>
+                  <td className="p-3 text-center hidden md:table-cell">{ans}</td>
+                </tr>;
+              })}</tbody>
+            </table>
+          </div>
+          <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 p-6 shadow-sm">
+            <h3 className="font-serif font-bold text-lg text-[#004030] dark:text-[#D8C3A5] mb-4">{t.analytics_form_title}</h3>
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="block text-xs font-semibold text-slate-600 dark:text-slate-400 mb-1">{t.analytics_group}</label>
+                <select value={studentInfo.group} onChange={e => setStudentInfo({...studentInfo, group: e.target.value})}
+                  className="w-full border border-slate-200 dark:border-slate-600 rounded-lg px-3 py-2 text-sm bg-white dark:bg-slate-700 text-slate-700 dark:text-slate-200">
+                  <option value="">--</option>
+                  {t.group_options.map(g => <option key={g} value={g}>{g}</option>)}
+                </select>
+              </div>
+              <div>
+                <label className="block text-xs font-semibold text-slate-600 dark:text-slate-400 mb-1">{t.analytics_dept}</label>
+                <input value={studentInfo.dept} onChange={e => setStudentInfo({...studentInfo, dept: e.target.value})} placeholder={t.analytics_dept_ph}
+                  className="w-full border border-slate-200 dark:border-slate-600 rounded-lg px-3 py-2 text-sm bg-white dark:bg-slate-700 text-slate-700 dark:text-slate-200"/>
+              </div>
+              <div>
+                <label className="block text-xs font-semibold text-slate-600 dark:text-slate-400 mb-1">{t.analytics_id}</label>
+                <input value={studentInfo.id} onChange={e => setStudentInfo({...studentInfo, id: e.target.value})} placeholder={t.analytics_id_ph}
+                  className="w-full border border-slate-200 dark:border-slate-600 rounded-lg px-3 py-2 text-sm bg-white dark:bg-slate-700 text-slate-700 dark:text-slate-200"/>
+              </div>
+              <div>
+                <label className="block text-xs font-semibold text-slate-600 dark:text-slate-400 mb-1">{t.analytics_name}</label>
+                <input value={studentInfo.name} onChange={e => setStudentInfo({...studentInfo, name: e.target.value})} placeholder={t.analytics_name_ph}
+                  className="w-full border border-slate-200 dark:border-slate-600 rounded-lg px-3 py-2 text-sm bg-white dark:bg-slate-700 text-slate-700 dark:text-slate-200"/>
+              </div>
+            </div>
+            <button onClick={handleExportCSV} disabled={!canExport}
+              className="mt-4 px-6 py-2.5 bg-[#004030] dark:bg-[#D8C3A5] text-white dark:text-[#004030] font-bold rounded-lg disabled:opacity-40 hover:bg-[#002b20] transition-colors text-sm">
+              {canExport ? t.analytics_export_csv : t.analytics_fill_required}
+            </button>
+          </div>
+          {renderNavBottom()}
+        </div>
+      );
+    }
+  };
+
+  return (
+    <div className={`min-h-screen bg-[#f4f4f4] dark:bg-[#121212] font-sans selection:bg-[#004030] selection:text-white dark:selection:bg-[#D8C3A5] dark:selection:text-[#004030] flex flex-col`}>
+      {/* Header */}
+      <header className="bg-[#004030] dark:bg-slate-900 text-white sticky top-0 z-50 shadow-lg border-b border-[#D8C3A5]/30">
+        <div className="max-w-7xl mx-auto px-4 h-16 flex items-center justify-between">
+          <div className="flex items-center space-x-3">
+            <button className="sm:hidden p-2 hover:bg-white/10 rounded-lg" onClick={() => setMenuOpen(!menuOpen)}>
+              {menuOpen ? <IconX size={20}/> : <IconMenu size={20}/>}
+            </button>
+            <div className="font-serif font-black text-2xl text-[#D8C3A5]">S</div>
+            <div className="hidden sm:block">
+              <h1 className="font-serif font-bold text-sm md:text-base leading-tight">{t.title}</h1>
+              <p className="text-[10px] text-[#D8C3A5]/70">{t.subtitle}</p>
+            </div>
+          </div>
+          <div className="flex items-center space-x-1">
+            {/* TTS */}
+            <div className="flex items-center space-x-1 mr-2">
+              {ttsState !== 'playing' ? (
+                <button onClick={() => handleTTS('play')} title={t.audio_read}
+                  className="p-2 rounded-full hover:bg-white/10 transition-colors flex items-center space-x-1 text-xs">
+                  <IconPlay size={14}/><span className="hidden md:inline">{t.audio_read}</span>
+                </button>
+              ) : (
+                <button onClick={() => handleTTS('pause')} className="p-2 rounded-full hover:bg-white/10 transition-colors"><IconPause size={14}/></button>
+              )}
+              {ttsState !== 'idle' && <button onClick={() => handleTTS('stop')} className="p-2 rounded-full hover:bg-white/10 transition-colors"><IconSquare size={14}/></button>}
+            </div>
+            <button onClick={() => setLang(lang==='zh'?'en':'zh')} className="px-3 py-1 rounded-full bg-white/10 hover:bg-white/20 text-sm font-bold transition-colors">
+              {lang === 'zh' ? 'EN' : '中文'}
+            </button>
+            <button onClick={() => setIsDark(!isDark)} className="p-2 rounded-full hover:bg-white/10 transition-colors">
+              {isDark ? <IconSun size={18}/> : <IconMoon size={18}/>}
+            </button>
+          </div>
+        </div>
+      </header>
+
+      <div className="max-w-7xl mx-auto w-full px-4 flex-1 flex flex-col md:flex-row gap-0 py-6">
+        {/* Sidebar */}
+        <aside className={`${menuOpen ? 'block' : 'hidden'} md:block w-full md:w-64 shrink-0 md:mr-6`}>
+          <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm overflow-hidden mb-4 md:mb-0 md:sticky md:top-24">
+            <div className="bg-[#004030]/5 dark:bg-[#D8C3A5]/5 px-4 py-3 border-b border-slate-200 dark:border-slate-700">
+              <p className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">{t.nav_modules}</p>
+            </div>
+            <nav className="space-y-0.5 p-2">
+              {modulesList.map(m => (
+                <button key={m.id} onClick={() => { setModule(m.id); setMenuOpen(false); }}
+                  className={`w-full flex items-center px-3 py-2.5 rounded-lg text-sm font-medium transition-colors text-left
+                    ${module === m.id
+                      ? 'bg-[#004030] dark:bg-[#D8C3A5]/20 text-white dark:text-[#D8C3A5] border border-[#D8C3A5]/30'
+                      : 'text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-700/50'
+                    }`}>
+                  <span className={`mr-2.5 ${module===m.id ? 'text-[#D8C3A5] dark:text-[#D8C3A5]' : 'opacity-50'}`}>{m.icon}</span>
+                  <span className="truncate">{m.title}</span>
+                  {module === m.id && <IconChevronRight size={14} className="ml-auto opacity-50 shrink-0"/>}
+                </button>
+              ))}
+            </nav>
+          </div>
+        </aside>
+
+        {/* Main Content */}
+        <main ref={contentRef} className="flex-1 min-w-0" onClick={handleClick}>
+          <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm p-6 md:p-8">
+            {renderContent()}
+          </div>
+        </main>
+      </div>
+
+      {/* Footer */}
+      <footer className="bg-[#004030] dark:bg-slate-950 text-slate-300 dark:text-slate-400 border-t border-[#D8C3A5]">
+        <div className="max-w-7xl mx-auto px-4 h-8 flex justify-between items-center text-[10px] sm:text-xs">
+          <div className="flex items-center space-x-2 md:space-x-4">
+            <div className="font-serif font-bold text-[#D8C3A5] hidden sm:block">S</div>
+            <span className="truncate">{t.copyright} · {t.date}</span>
+          </div>
+          <div className="flex items-center space-x-3 md:space-x-4">
+            <span className="text-[#D8C3A5] font-serif hidden sm:inline">{t.architect}</span>
+            <button onClick={() => window.scrollTo({top:0,behavior:'smooth'})}
+              className="flex items-center uppercase tracking-widest hover:text-white transition-colors border-l border-slate-600 pl-3">
+              <IconChevronUp size={12} className="md:mr-1"/> <span className="hidden sm:inline">TOP</span>
+            </button>
+          </div>
+        </div>
+      </footer>
+    </div>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById('root')).render(<App/>);
+</script>
+</body>
+</html>
