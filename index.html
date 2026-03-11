@@ -516,46 +516,53 @@ const FlipCard = ({ front, back, t }) => {
 const ModuleQuiz = ({ questions, t, moduleId, onQuizSubmit }) => {
   const [selected, setSelected] = useState({});
   const [submitted, setSubmitted] = useState(false);
-  const [quizQuestions] = useState(() => [...questions].sort(() => Math.random() - 0.5).slice(0, 4));
-  const correctCount = submitted ? quizQuestions.filter((q, i) => selected[i] === q.ans).length : 0;
+  // 只存索引，不存題目文字，確保語言切換後渲染內容即時更新
+  const [quizIndices] = useState(() =>
+    [...Array(questions.length).keys()].sort(() => Math.random() - 0.5).slice(0, 4)
+  );
   const handleSubmit = () => {
-    if (Object.keys(selected).length < quizQuestions.length) return;
+    if (Object.keys(selected).length < quizIndices.length) return;
+    const correctCount = quizIndices.filter((qIdx, i) => selected[i] === questions[qIdx].ans).length;
     setSubmitted(true);
-    onQuizSubmit(moduleId, correctCount, quizQuestions.length);
+    onQuizSubmit(moduleId, correctCount, quizIndices.length);
   };
   const handleRetry = () => { setSelected({}); setSubmitted(false); };
+  const correctCount = submitted ? quizIndices.filter((qIdx, i) => selected[i] === questions[qIdx].ans).length : 0;
   return (
     <div className="mt-8 bg-slate-50 dark:bg-slate-900 rounded-2xl p-6 border border-slate-200 dark:border-slate-700">
       <h3 className="font-serif font-bold text-xl text-[#004030] dark:text-[#D8C3A5] mb-6 flex items-center">
         <IconBookOpen size={20} className="mr-2"/>{t.quiz_title}
       </h3>
-      {quizQuestions.map((q, qi) => (
-        <div key={qi} className="mb-6">
-          <p className="font-semibold text-slate-800 dark:text-slate-200 mb-3">{qi+1}. {q.q}</p>
-          <div className="space-y-2">
-            {q.opts.map((opt, oi) => {
-              let cls = "w-full text-left px-4 py-2.5 rounded-lg border text-sm transition-colors ";
-              if (!submitted) {
-                cls += selected[qi] === oi ? "border-[#004030] bg-[#004030]/10 dark:bg-[#D8C3A5]/10 text-[#004030] dark:text-[#D8C3A5] font-semibold" : "border-slate-200 dark:border-slate-600 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300";
-              } else {
-                if (oi === q.ans) cls += "border-green-500 bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-400 font-semibold";
-                else if (selected[qi] === oi) cls += "border-red-400 bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400";
-                else cls += "border-slate-200 dark:border-slate-600 text-slate-500 dark:text-slate-500";
-              }
-              return <button key={oi} className={cls} onClick={() => !submitted && setSelected({...selected, [qi]: oi})}>{opt}</button>;
-            })}
+      {quizIndices.map((qIdx, qi) => {
+        const q = questions[qIdx]; // 永遠從當前語言的 questions 取值
+        return (
+          <div key={qIdx} className="mb-6">
+            <p className="font-semibold text-slate-800 dark:text-slate-200 mb-3">{qi+1}. {q.q}</p>
+            <div className="space-y-2">
+              {q.opts.map((opt, oi) => {
+                let cls = "w-full text-left px-4 py-2.5 rounded-lg border text-sm transition-colors ";
+                if (!submitted) {
+                  cls += selected[qi] === oi ? "border-[#004030] bg-[#004030]/10 dark:bg-[#D8C3A5]/10 text-[#004030] dark:text-[#D8C3A5] font-semibold" : "border-slate-200 dark:border-slate-600 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300";
+                } else {
+                  if (oi === q.ans) cls += "border-green-500 bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-400 font-semibold";
+                  else if (selected[qi] === oi) cls += "border-red-400 bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400";
+                  else cls += "border-slate-200 dark:border-slate-600 text-slate-500 dark:text-slate-500";
+                }
+                return <button key={oi} className={cls} onClick={() => !submitted && setSelected({...selected, [qi]: oi})}>{opt}</button>;
+              })}
+            </div>
+            {submitted && <p className="mt-2 text-xs text-slate-500 dark:text-slate-400 italic">{t.explanation}：{q.exp}</p>}
           </div>
-          {submitted && <p className="mt-2 text-xs text-slate-500 dark:text-slate-400 italic">{t.explanation}：{q.exp}</p>}
-        </div>
-      ))}
+        );
+      })}
       {!submitted ? (
-        <button onClick={handleSubmit} disabled={Object.keys(selected).length < quizQuestions.length}
+        <button onClick={handleSubmit} disabled={Object.keys(selected).length < quizIndices.length}
           className="px-6 py-2.5 bg-[#004030] dark:bg-[#D8C3A5] text-white dark:text-[#004030] font-bold rounded-lg disabled:opacity-40 hover:bg-[#002b20] dark:hover:bg-white transition-colors">
           {t.submit}
         </button>
       ) : (
         <div className="flex items-center space-x-4">
-          <span className="font-bold text-lg text-[#004030] dark:text-[#D8C3A5]">{t.score}：{correctCount} / {quizQuestions.length}</span>
+          <span className="font-bold text-lg text-[#004030] dark:text-[#D8C3A5]">{t.score}：{correctCount} / {quizIndices.length}</span>
           <button onClick={handleRetry} className="px-4 py-2 border border-[#004030] dark:border-[#D8C3A5] text-[#004030] dark:text-[#D8C3A5] rounded-lg hover:bg-[#004030]/10 text-sm font-semibold transition-colors">{t.retry}</button>
         </div>
       )}
@@ -589,7 +596,7 @@ function App() {
   useEffect(() => {
     window.speechSynthesis && window.speechSynthesis.cancel();
     setTtsState('idle');
-    if (contentRef.current) contentRef.current.scrollTop = 0;
+    window.scrollTo({top: 0, behavior: 'smooth'});
     if (timerRef.current) clearInterval(timerRef.current);
     if (module < N) {
       timerRef.current = setInterval(() => {
@@ -940,19 +947,46 @@ function App() {
   };
 
   return (
-    <div className={`min-h-screen bg-[#f4f4f4] dark:bg-[#121212] font-sans selection:bg-[#004030] selection:text-white dark:selection:bg-[#D8C3A5] dark:selection:text-[#004030] flex flex-col`}>
+    <div className={`min-h-screen bg-[#f4f4f4] dark:bg-[#121212] font-sans selection:bg-[#004030] selection:text-white dark:selection:bg-[#D8C3A5] dark:selection:text-[#004030] flex flex-col overflow-x-hidden`}>
       {/* Header */}
       <header className="bg-[#004030] dark:bg-slate-900 text-white sticky top-0 z-50 shadow-lg border-b border-[#D8C3A5]/30">
         <div className="max-w-7xl mx-auto px-4 h-16 flex items-center justify-between">
           <div className="flex items-center space-x-3">
-            <button className="sm:hidden p-2 hover:bg-white/10 rounded-lg" onClick={() => setMenuOpen(!menuOpen)}>
-              {menuOpen ? <IconX size={20}/> : <IconMenu size={20}/>}
-            </button>
-            <div className="font-serif font-black text-2xl text-[#D8C3A5]">S</div>
-            <div className="hidden sm:block">
-              <h1 className="font-serif font-bold text-sm md:text-base leading-tight">{t.title}</h1>
-              <p className="text-[10px] text-[#D8C3A5]/70">{t.subtitle}</p>
+            {/* 漢堡目錄 — 下拉式 dropdown */}
+            <div className="relative">
+              <button className="p-2 hover:bg-white/10 rounded-lg" onClick={() => setMenuOpen(!menuOpen)}>
+                {menuOpen ? <IconX size={20}/> : <IconMenu size={20}/>}
+              </button>
+              {menuOpen && (
+                <div className="absolute top-full left-0 mt-2 w-64 bg-white dark:bg-slate-800 rounded-xl shadow-2xl border border-slate-200 dark:border-slate-700 z-50 overflow-hidden">
+                  <div className="bg-[#004030]/5 dark:bg-[#D8C3A5]/5 px-4 py-2 border-b border-slate-200 dark:border-slate-700">
+                    <p className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">{t.nav_modules}</p>
+                  </div>
+                  {modulesList.map(m => (
+                    <button key={m.id} onClick={() => { setModule(m.id); setMenuOpen(false); }}
+                      className={`w-full flex items-center gap-3 px-4 py-3 text-sm font-medium transition-colors text-left
+                        ${module === m.id
+                          ? 'bg-[#004030] text-white dark:bg-[#D8C3A5]/20 dark:text-[#D8C3A5] font-bold'
+                          : 'text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700/50'
+                        }`}>
+                      <span className={module === m.id ? 'text-[#D8C3A5]' : 'opacity-50'}>{m.icon}</span>
+                      <span className="truncate">{m.title}</span>
+                    </button>
+                  ))}
+                </div>
+              )}
             </div>
+            {/* 品牌/標題 — 點擊捲回頁頂 */}
+            <button
+            onClick={() => { window.scrollTo({top:0,behavior:'smooth'}); }}
+              className="flex items-center gap-2 hover:opacity-80 transition-opacity"
+            >
+              <div className="font-serif font-black text-2xl text-[#D8C3A5]">S</div>
+              <div className="hidden sm:block text-left">
+                <h1 className="font-serif font-bold text-sm md:text-base leading-tight">{t.title}</h1>
+                <p className="text-[10px] text-[#D8C3A5]/70">{t.subtitle}</p>
+              </div>
+            </button>
           </div>
           <div className="flex items-center space-x-1">
             {/* TTS */}
@@ -978,8 +1012,8 @@ function App() {
       </header>
 
       <div className="max-w-7xl mx-auto w-full px-4 flex-1 flex flex-col md:flex-row gap-0 py-6">
-        {/* Sidebar */}
-        <aside className={`${menuOpen ? 'block' : 'hidden'} md:block w-full md:w-64 shrink-0 md:mr-6`}>
+        {/* Sidebar — 手機隱藏（由 header dropdown 取代），平板/桌機常駐 */}
+        <aside className="hidden md:block w-64 shrink-0 mr-6">
           <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm overflow-hidden mb-4 md:mb-0 md:sticky md:top-24">
             <div className="bg-[#004030]/5 dark:bg-[#D8C3A5]/5 px-4 py-3 border-b border-slate-200 dark:border-slate-700">
               <p className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">{t.nav_modules}</p>
@@ -1017,7 +1051,17 @@ function App() {
             <span className="truncate">{t.copyright} · {t.date}</span>
           </div>
           <div className="flex items-center space-x-3 md:space-x-4">
-            <span className="text-[#D8C3A5] font-serif hidden sm:inline">{t.architect}</span>
+            <span className="text-[#D8C3A5]/70 font-serif hidden sm:inline">
+              {lang==='zh' ? '設計者：' : 'Architect: '}
+              <a
+                href="https://www.ibs.ncnu.edu.tw/index.php/faculty/tenured-professor/299-smlo"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-[#D8C3A5] hover:text-white underline underline-offset-2 transition-colors"
+              >
+                {lang==='zh' ? '羅時敏 教授' : 'Prof. Shihmin Lo'}
+              </a>
+            </span>
             <button onClick={() => window.scrollTo({top:0,behavior:'smooth'})}
               className="flex items-center uppercase tracking-widest hover:text-white transition-colors border-l border-slate-600 pl-3">
               <IconChevronUp size={12} className="md:mr-1"/> <span className="hidden sm:inline">TOP</span>
