@@ -250,9 +250,9 @@ const dict = {
       { q: "Teamlease 的 Manish Sabharwal 在印度面臨的主要成長障礙是？", opts: ["缺乏技術人才","勞動法規不明確","融資困難","市場規模太小"], ans: 1, exp: "Teamlease 幫助印度人找工作，但印度勞動法規的不清晰成為其規模化的主要障礙。" }
     ],
     // Footer
-    date: "Version 2025.03",
-    copyright: "© 2025 Wharton Online Entrepreneurship",
-    architect: "Course: Entrepreneurship Specialization"
+    date: "Version 2026.03.11",
+    copyright: "For Educational Use Only",
+    architect: "Architect: Prof. Shihmin Lo"
   },
   en: {
     title: "Entrepreneurship: Opportunity, Strategy & Impact",
@@ -467,9 +467,9 @@ const dict = {
       { q: "The three principles for successfully integrating social mission with business model are:", opts: ["Low cost, high efficiency, rapid scaling","Lead with product, ensure mission is authentic, implement simply","Prioritize charity, then profit, then scale","Technology-first, market penetration, IPO exit"], ans: 1, exp: "Prof. Hosanagar's principles: product quality first, social mission must be genuine, execution must be simple and understandable (like 'buy one, give one')." },
       { q: "Teamlease's main growth barrier in India was:", opts: ["Lack of technical talent","Unclear labor laws","Financing difficulties","Market too small"], ans: 1, exp: "Teamlease helps Indians find jobs, but India's unclear labor regulations became a key barrier to scaling the social enterprise." }
     ],
-    date: "Version 2025.03",
-    copyright: "© 2025 Wharton Online Entrepreneurship",
-    architect: "Course: Entrepreneurship Specialization"
+    date: "Version 2026.03.11",
+    copyright: "For Educational Use Only",
+    architect: "Architect: Prof. Shihmin Lo"
   }
 };
 
@@ -575,6 +575,13 @@ function App() {
   const [isDark, setIsDark] = useState(false);
   const [module, setModule] = useState(0);
   const [menuOpen, setMenuOpen] = useState(false);
+  const menuRef = React.useRef(null);
+  React.useEffect(() => {
+    if (!menuOpen) return;
+    const handler = (e) => { if (menuRef.current && !menuRef.current.contains(e.target)) setMenuOpen(false); };
+    document.addEventListener('mousedown', handler);
+    return () => document.removeEventListener('mousedown', handler);
+  }, [menuOpen]);
   const [ttsState, setTtsState] = useState('idle');
   const [studentInfo, setStudentInfo] = useState({ group:'', dept:'', id:'', name:'' });
   const N = 7;
@@ -625,10 +632,25 @@ function App() {
     if (action === 'play') {
       if (ttsState === 'paused') { window.speechSynthesis.resume(); setTtsState('playing'); return; }
       window.speechSynthesis.cancel();
+      const sep = lang === 'zh' ? '。 ' : '. ';
       const mKeys = ['m1','m2','m3','m4','m5','m6','m7'];
       const mk = mKeys[module];
-      const texts = mk ? [t[`${mk}_title`], t[`${mk}_p1`], t[`${mk}_p2`], t[`${mk}_p3`]].filter(Boolean) : [t.analytics_title, t.analytics_desc];
-      const utterance = new SpeechSynthesisUtterance(texts.join('。 '));
+      let texts = [];
+      if (mk) {
+        texts = [
+          t[`${mk}_title`],
+          t[`${mk}_p1`], t[`${mk}_p2`], t[`${mk}_p3`],
+          ...(t[`${mk}_cards`] || []).map(c => `${c.title}. ${c.desc}`),
+          ...(t[`${mk}_timeline`] || []).map(s => `${s.title}. ${s.desc}`),
+          ...(t[`${mk}_examples`] || []).map(e => `${e.name}. ${e.desc}`),
+          ...(t[`${mk}_terms`] || []).flatMap(term => [term.front, term.back])
+          // ModuleQuiz 題幹不列入 TTS（互動元件，不適合語音朗讀）
+        ].filter(Boolean);
+      } else {
+        texts = [t.analytics_title, t.analytics_desc].filter(Boolean);
+      }
+      const text = texts.join(sep);
+      const utterance = new SpeechSynthesisUtterance(text);
       utterance.rate = 0.95;
       const voices = window.speechSynthesis.getVoices();
       if (lang === 'zh') {
@@ -949,16 +971,16 @@ function App() {
   return (
     <div className={`min-h-screen bg-[#f4f4f4] dark:bg-[#121212] font-sans selection:bg-[#004030] selection:text-white dark:selection:bg-[#D8C3A5] dark:selection:text-[#004030] flex flex-col overflow-x-hidden`}>
       {/* Header */}
-      <header className="bg-[#004030] dark:bg-slate-900 text-white sticky top-0 z-50 shadow-lg border-b border-[#D8C3A5]/30">
-        <div className="max-w-7xl mx-auto px-4 h-16 flex items-center justify-between">
+      <header className="bg-[#004030] dark:bg-slate-900 text-white sticky top-0 z-50 shadow-lg border-b border-[#D8C3A5]/30 h-16">
+        <div className="max-w-7xl mx-auto px-3 sm:px-4 lg:px-6 h-16 flex items-center justify-between">
           <div className="flex items-center space-x-3">
             {/* 漢堡目錄 — 下拉式 dropdown */}
-            <div className="relative">
+            <div className="relative" ref={menuRef}>
               <button className="p-2 hover:bg-white/10 rounded-lg" onClick={() => setMenuOpen(!menuOpen)}>
                 {menuOpen ? <IconX size={20}/> : <IconMenu size={20}/>}
               </button>
               {menuOpen && (
-                <div className="absolute top-full left-0 mt-2 w-64 bg-white dark:bg-slate-800 rounded-xl shadow-2xl border border-slate-200 dark:border-slate-700 z-50 overflow-hidden">
+                <div className="absolute top-full left-0 mt-1 w-64 max-w-[calc(100vw-2rem)] max-h-[calc(100vh-5rem)] overflow-y-auto bg-white dark:bg-slate-800 rounded-xl shadow-2xl border border-slate-200 dark:border-slate-700 z-[100] overflow-x-hidden">
                   <div className="bg-[#004030]/5 dark:bg-[#D8C3A5]/5 px-4 py-2 border-b border-slate-200 dark:border-slate-700">
                     <p className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">{t.nav_modules}</p>
                   </div>
@@ -981,7 +1003,7 @@ function App() {
             onClick={() => { window.scrollTo({top:0,behavior:'smooth'}); }}
               className="flex items-center gap-2 hover:opacity-80 transition-opacity"
             >
-              <div className="font-serif font-black text-2xl text-[#D8C3A5]">S</div>
+              <div className="font-serif font-black text-lg tracking-widest text-[#D8C3A5]">ENT</div>
               <div className="hidden sm:block text-left">
                 <h1 className="font-serif font-bold text-sm md:text-base leading-tight">{t.title}</h1>
                 <p className="text-[10px] text-[#D8C3A5]/70">{t.subtitle}</p>
@@ -1011,7 +1033,7 @@ function App() {
         </div>
       </header>
 
-      <div className="max-w-7xl mx-auto w-full px-4 flex-1 flex flex-col md:flex-row gap-0 py-6">
+      <div className="max-w-7xl mx-auto w-full px-3 sm:px-4 lg:px-6 flex-1 flex flex-col md:flex-row gap-0 py-6">
         {/* Sidebar — 手機隱藏（由 header dropdown 取代），平板/桌機常駐 */}
         <aside className="hidden md:block w-64 shrink-0 mr-6">
           <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm overflow-hidden mb-4 md:mb-0 md:sticky md:top-24">
@@ -1047,19 +1069,19 @@ function App() {
       <footer className="bg-[#004030] dark:bg-slate-950 text-slate-300 dark:text-slate-400 border-t border-[#D8C3A5]">
         <div className="max-w-7xl mx-auto px-4 h-8 flex justify-between items-center text-[10px] sm:text-xs">
           <div className="flex items-center space-x-2 md:space-x-4">
-            <div className="font-serif font-bold text-[#D8C3A5] hidden sm:block">S</div>
+            <div className="font-serif font-black text-[#D8C3A5] hidden sm:block tracking-widest text-sm">ENT</div>
             <span className="truncate">{t.copyright} · {t.date}</span>
           </div>
           <div className="flex items-center space-x-3 md:space-x-4">
             <span className="text-[#D8C3A5]/70 font-serif hidden sm:inline">
-              {lang==='zh' ? '設計者：' : 'Architect: '}
+              Architect:&nbsp;
               <a
                 href="https://www.ibs.ncnu.edu.tw/index.php/faculty/tenured-professor/299-smlo"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="text-[#D8C3A5] hover:text-white underline underline-offset-2 transition-colors"
               >
-                {lang==='zh' ? '羅時敏 教授' : 'Prof. Shihmin Lo'}
+                Prof. Shihmin Lo
               </a>
             </span>
             <button onClick={() => window.scrollTo({top:0,behavior:'smooth'})}
